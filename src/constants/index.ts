@@ -149,12 +149,12 @@ export const TESTIMONIALS: Testimonial[] = [
 ];
 
 export const NAVIGATION_ITEMS: NavigationItem[] = [
-  { href: "#home", label: "Home", emoji: "🏠", id: "home" },
-  { href: "#benefits", label: "Why Us", emoji: "✨", id: "benefits" },
-  { href: "#partners", label: "Partners", emoji: "🤝", id: "partners" },
-  { href: "#marketplace", label: "How It Works", emoji: "🛒", id: "marketplace" },
-  { href: "#testimonials", label: "Reviews", emoji: "💬", id: "testimonials" },
-  { href: "#faq", label: "FAQ", emoji: "❓", id: "faq" }
+  { href: "#home", label: "Trang chủ", emoji: "🏠", id: "home" },
+  { href: "#marketplace", label: "Sàn giao dịch", emoji: "🛒", id: "marketplace" },
+  { href: "#dashboard", label: "Dashboard", emoji: "📊", id: "dashboard" },
+  { href: "#provider", label: "Trở thành Nhà cung cấp", emoji: "🚀", id: "provider" },
+  { href: "#about", label: "Giới thiệu", emoji: "ℹ️", id: "about" },
+  { href: "#contact", label: "Liên hệ", emoji: "📞", id: "contact" }
 ];
 
 export const SOCIAL_LINKS: SocialLink[] = [

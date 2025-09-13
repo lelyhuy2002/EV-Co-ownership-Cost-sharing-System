@@ -13,10 +13,10 @@ interface HeaderProps {
 
 export default function Header({ headerHidden, currentSection, goToSection }: HeaderProps) {
   return (
-    <header className={`${styles.header} ${headerHidden ? styles.headerHidden : ""}`}>
+    <header className={`${styles.header} ${headerHidden ? styles.headerHidden : ""} glass`}>
       <div className={styles.headerLeft}>
         <Image src={COMPANY_INFO.logo} alt={COMPANY_INFO.name} width={140} height={28} className={styles.brand} />
-        <span className={styles.brandName}>{COMPANY_INFO.name}</span>
+        <span className={`${styles.brandName} gradient-text`}>{COMPANY_INFO.name}</span>
       </div>
       <HeaderNav currentSection={currentSection} goToSection={goToSection} />
     </header>
@@ -51,10 +51,10 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
       </nav>
       
       <div className={styles.headerCtas}>
-        <button className={`${styles.button} ${styles.secondary}`}>
+        <button className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
           Đăng nhập
         </button>
-        <button className={`${styles.button} ${styles.primary}`}>
+        <button className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>
           Đăng ký
         </button>
       </div>
