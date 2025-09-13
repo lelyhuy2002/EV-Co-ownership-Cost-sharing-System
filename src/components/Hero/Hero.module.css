@@ -1,0 +1,162 @@
+.hero { 
+  padding: 40px 0; 
+}
+
+.heroPanel { 
+  display: grid; 
+  grid-template-columns: 1.1fr 0.9fr; 
+  align-items: center; 
+  gap: 40px; 
+  background: linear-gradient(135deg, #d9f99d 0%, #ecfccb 60%, #f0fdf4 100%); 
+  border-radius: 32px; 
+  padding: 72px 48px; 
+  box-shadow: 0 20px 60px rgba(0,0,0,.08); 
+  position: relative; 
+  overflow: hidden; 
+}
+
+.heroPanel::after { 
+  content: ""; 
+  position: absolute; 
+  inset: -20%; 
+  background: radial-gradient(600px 300px at 80% 30%, rgba(37,99,235,.18), transparent 60%); 
+  pointer-events: none; 
+}
+
+.heroPanel::before { 
+  content: ""; 
+  position: absolute; 
+  width: 420px; 
+  height: 420px; 
+  right: -120px; 
+  top: -80px; 
+  background: conic-gradient(from 180deg at 50% 50%, rgba(59,130,246,.25), rgba(16,185,129,.15), transparent 60%); 
+  filter: blur(30px); 
+  border-radius: 50%; 
+}
+
+.heroContent { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px; 
+}
+
+.heroTitle { 
+  font-size: 40px; 
+  line-height: 1.15; 
+  letter-spacing: -0.02em; 
+}
+
+.heroVisual { 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.heroCircle { 
+  width: 360px; 
+  height: 360px; 
+  border-radius: 50%; 
+  background: #111; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  box-shadow: 0 12px 40px rgba(0,0,0,.35); 
+}
+
+.heroCircle::after { 
+  content: ""; 
+  position: absolute; 
+  width: 360px; 
+  height: 360px; 
+  border-radius: 50%; 
+  box-shadow: 0 0 120px rgba(37,99,235,.35) inset, 0 0 60px rgba(16,185,129,.25); 
+}
+
+.heroChecklist { 
+  display: grid; 
+  gap: 8px; 
+  margin-top: 8px; 
+}
+
+.heroChecklist li::before { 
+  content: "✓ "; 
+  color: #16a34a; 
+  font-weight: 700; 
+}
+
+.heroBadge { 
+  font-size: 28px; 
+  margin-bottom: 12px; 
+}
+
+.ctas {
+  display: flex;
+  gap: 16px;
+}
+
+.ctas a {
+  appearance: none;
+  border-radius: 128px;
+  height: 48px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.primary {
+  background: var(--foreground);
+  color: var(--background);
+  gap: 8px;
+}
+
+.primary:hover { 
+  transform: translateY(-1px); 
+  box-shadow: 0 10px 24px rgba(0,0,0,.2); 
+}
+
+.reveal { 
+  opacity: 0; 
+  transform: translateY(16px); 
+  animation: reveal .6s ease forwards; 
+}
+
+@keyframes reveal { 
+  to { 
+    opacity: 1; 
+    transform: none; 
+  } 
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover { 
+    background: var(--button-primary-hover); 
+  }
+}
+
+@media (max-width: 600px) {
+  .heroPanel { 
+    grid-template-columns: 1fr; 
+    text-align: center; 
+  }
+  
+  .ctas {
+    flex-direction: column;
+  }
+
+  .ctas a {
+    font-size: 14px;
+    height: 40px;
+    padding: 0 16px;
+  }
+}

@@ -1,0 +1,80 @@
+.section { 
+  padding: 24px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 24px; 
+}
+
+.sectionTitle { 
+  font-size: 28px; 
+  letter-spacing: -0.01em; 
+  text-align: center; 
+}
+
+.quote { 
+  font-size: 18px; 
+  font-style: italic; 
+  opacity: 0.95; 
+  text-align: center; 
+}
+
+.testimonial { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  justify-content: center; 
+}
+
+.carousel { 
+  position: relative; 
+  overflow: hidden; 
+  min-height: 90px; 
+}
+
+.carouselItem { 
+  position: absolute; 
+  inset: 0; 
+  opacity: 0; 
+  transform: translateY(8px); 
+  transition: opacity .4s ease, transform .4s ease; 
+}
+
+.carouselItemActive { 
+  position: relative; 
+  opacity: 1; 
+  transform: none; 
+}
+
+.dots { 
+  display: flex; 
+  gap: 8px; 
+  justify-content: center; 
+  margin-top: 12px; 
+}
+
+.dot { 
+  width: 8px; 
+  height: 8px; 
+  border-radius: 999px; 
+  background: rgba(0,0,0,.2); 
+  border: none; 
+  cursor: pointer; 
+}
+
+.dotActive { 
+  background: #111; 
+  width: 20px; 
+}
+
+.reveal { 
+  opacity: 0; 
+  transform: translateY(16px); 
+  animation: reveal .6s ease forwards; 
+}
+
+@keyframes reveal { 
+  to { 
+    opacity: 1; 
+    transform: none; 
+  } 
+}

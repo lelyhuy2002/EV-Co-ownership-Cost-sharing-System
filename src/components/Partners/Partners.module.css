@@ -1,0 +1,50 @@
+.section { 
+  padding: 24px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 24px; 
+}
+
+.sectionTitle { 
+  font-size: 28px; 
+  letter-spacing: -0.01em; 
+  text-align: center; 
+}
+
+.sectionSubtitle { 
+  text-align: center; 
+  opacity: .8; 
+  margin-top: -8px; 
+}
+
+.partnersRow { 
+  display: flex; 
+  gap: 40px; 
+  align-items: center; 
+  justify-content: center; 
+  opacity: .8; 
+}
+
+.partnersRow img { 
+  filter: grayscale(1); 
+  opacity: .8; 
+  transition: opacity .2s ease, filter .2s ease; 
+}
+
+.partnersRow img:hover { 
+  filter: grayscale(.2); 
+  opacity: 1; 
+}
+
+.reveal { 
+  opacity: 0; 
+  transform: translateY(16px); 
+  animation: reveal .6s ease forwards; 
+}
+
+@keyframes reveal { 
+  to { 
+    opacity: 1; 
+    transform: none; 
+  } 
+}

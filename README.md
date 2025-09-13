@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EV Co-ownership Cost-sharing System
 
-## Getting Started
+Hệ thống chia sẻ chi phí sở hữu chung xe điện - Nền tảng giao dịch dữ liệu cho ngành xe điện.
 
-First, run the development server:
+## 🚀 Tính năng chính
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Kho dữ liệu khổng lồ**: Truy cập hàng triệu điểm dữ liệu từ nguồn uy tín
+- **Công cụ phân tích mạnh mẽ**: Dashboard trực quan để khai thác giá trị dữ liệu
+- **Bảo mật tuyệt đối**: An toàn và ẩn danh cho mọi giao dịch dữ liệu
+- **API dễ tích hợp**: Tích hợp nhanh chóng vào hệ thống hiện có
+
+## 🛠️ Công nghệ sử dụng
+
+- **Framework**: Next.js 15.5.3 với App Router
+- **Language**: TypeScript
+- **Styling**: CSS Modules
+- **Fonts**: Geist Sans & Geist Mono
+- **Build Tool**: Turbopack
+
+## 📁 Cấu trúc dự án
+
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Home page
+│   └── page.module.css    # Page styles
+├── components/            # React components
+│   ├── Header/           # Header component
+│   ├── Hero/             # Hero section
+│   ├── Benefits/         # Benefits section
+│   ├── Partners/         # Partners section
+│   ├── HowItWorks/       # How it works section
+│   ├── Testimonials/     # Testimonials carousel
+│   ├── FAQ/              # FAQ section
+│   ├── Newsletter/       # Newsletter signup
+│   └── Footer/           # Footer component
+├── types/                # TypeScript type definitions
+├── constants/            # Application constants
+└── utils/                # Utility functions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Bắt đầu
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Yêu cầu hệ thống
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18+ 
+- npm, yarn, pnpm hoặc bun
 
-## Learn More
+### Cài đặt
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Clone repository
+git clone <repository-url>
+cd EV-Co-ownership-Cost-sharing-System
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Cài đặt dependencies
+npm install
+# hoặc
+yarn install
+# hoặc
+pnpm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Chạy dự án
 
-## Deploy on Vercel
+```bash
+# Development server
+npm run dev
+# hoặc
+yarn dev
+# hoặc
+pnpm dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Build production
+npm run build
+# hoặc
+yarn build
+# hoặc
+pnpm build
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Start production server
+npm start
+# hoặc
+yarn start
+# hoặc
+pnpm start
+```
+
+Mở [http://localhost:3000](http://localhost:3000) để xem kết quả.
+
+## 🎨 Thiết kế
+
+- **Responsive Design**: Tối ưu cho mọi thiết bị
+- **Modern UI**: Giao diện hiện đại với animations mượt mà
+- **Accessibility**: Tuân thủ các tiêu chuẩn accessibility
+- **Performance**: Tối ưu tốc độ tải và hiệu suất
+
+## 📝 Scripts
+
+- `npm run dev` - Chạy development server với Turbopack
+- `npm run build` - Build production với Turbopack
+- `npm run start` - Chạy production server
+- `npm run lint` - Chạy ESLint
+
+## 🤝 Đóng góp
+
+1. Fork dự án
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Mở Pull Request
+
+## 📄 License
+
+Dự án này được phân phối dưới MIT License. Xem file `LICENSE` để biết thêm thông tin.
+
+## 📞 Liên hệ
+
+- Email: contact@evdata.local
+- Website: [EV Data Marketplace](https://evdata.local)
+
+---
+
+Được phát triển với ❤️ bởi EV Data Marketplace Team
