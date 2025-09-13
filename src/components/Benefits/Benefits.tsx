@@ -1,6 +1,7 @@
 import styles from "./Benefits.module.css";
 import "./BenefitsEffects.css";
 import { BENEFITS } from "@/constants";
+import ScrollAnimation from "@/components/ScrollAnimation/ScrollAnimation";
 
 const cardColors = [
   { 
@@ -33,30 +34,39 @@ const cardColors = [
 export default function Benefits() {
   return (
     <section id="benefits" className={`${styles.section} ${styles.reveal}`}>
-      <h2 className={styles.sectionTitle}>Vì sao chọn chúng tôi</h2>
+      <ScrollAnimation animation="fadeIn" delay={0}>
+        <h2 className={styles.sectionTitle}>Vì sao chọn chúng tôi</h2>
+      </ScrollAnimation>
+      
       <div className={styles.cards}>
         {BENEFITS.map((benefit, index) => {
           const colorScheme = cardColors[index % cardColors.length];
           return (
-            <div 
+            <ScrollAnimation 
               key={index} 
-              className={styles.card}
-              style={{
-                background: colorScheme.gradient,
-                borderColor: colorScheme.borderColor
-              }}
+              animation="slideUp" 
+              delay={index * 100}
+              className={styles.cardWrapper}
             >
-              <div className={styles.cardIcon}>
-                <span 
-                  className={styles.iconBadge}
-                  style={{ background: colorScheme.iconBg }}
-                >
-                  {benefit.icon}
-                </span>
+              <div 
+                className={styles.card}
+                style={{
+                  background: colorScheme.gradient,
+                  borderColor: colorScheme.borderColor
+                }}
+              >
+                <div className={styles.cardIcon}>
+                  <span 
+                    className={styles.iconBadge}
+                    style={{ background: colorScheme.iconBg }}
+                  >
+                    {benefit.icon}
+                  </span>
+                </div>
+                <h3 className={styles.cardTitle}>{benefit.title}</h3>
+                <p className={styles.cardText}>{benefit.description}</p>
               </div>
-              <h3 className={styles.cardTitle}>{benefit.title}</h3>
-              <p className={styles.cardText}>{benefit.description}</p>
-            </div>
+            </ScrollAnimation>
           );
         })}
       </div>

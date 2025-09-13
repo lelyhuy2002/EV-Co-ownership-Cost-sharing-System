@@ -1,0 +1,13 @@
+<svg width="120" height="36" viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="googleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <circle cx="12" cy="18" r="8" fill="#4285F4"/>
+  <path d="M4 18C4 12 7 8 12 8C14 8 16 9 17 11" stroke="#EA4335" stroke-width="2.5" fill="none"/>
+  <path d="M20 18C20 12 17 8 12 8" stroke="#FBBC05" stroke-width="2.5" fill="none"/>
+  <path d="M20 18C20 24 17 28 12 28C10 28 8 27 7 25" stroke="#34A853" stroke-width="2.5" fill="none"/>
+  <text x="32" y="24" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="700" fill="url(#googleGradient)" letter-spacing="0.5px">Google</text>
+</svg>

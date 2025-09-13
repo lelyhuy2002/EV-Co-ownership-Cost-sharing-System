@@ -1,25 +1,40 @@
 .hero { 
-  padding: 40px 0; 
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
 }
 
 .heroPanel { 
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 30%, #C084FC 60%, #E879F9 100%); 
+  position: relative; 
+  overflow: hidden; 
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: grid; 
   grid-template-columns: 1.1fr 0.9fr; 
   align-items: center; 
-  gap: 40px; 
-  background: linear-gradient(135deg, #d9f99d 0%, #ecfccb 60%, #f0fdf4 100%); 
-  border-radius: 32px; 
-  padding: 72px 48px; 
-  box-shadow: 0 20px 60px rgba(0,0,0,.08); 
-  position: relative; 
-  overflow: hidden; 
+  gap: 32px; 
+  width: 100%;
+  height: 100%;
 }
 
 .heroPanel::after { 
   content: ""; 
   position: absolute; 
   inset: -20%; 
-  background: radial-gradient(600px 300px at 80% 30%, rgba(37,99,235,.18), transparent 60%); 
+  background: radial-gradient(600px 300px at 80% 30%, rgba(255, 255, 255, 0.2), transparent 60%); 
   pointer-events: none; 
 }
 
@@ -30,12 +45,12 @@
   height: 420px; 
   right: -120px; 
   top: -80px; 
-  background: conic-gradient(from 180deg at 50% 50%, rgba(59,130,246,.25), rgba(16,185,129,.15), transparent 60%); 
+  background: conic-gradient(from 180deg at 50% 50%, rgba(255, 255, 255, 0.3), rgba(168, 85, 247, 0.2), transparent 60%); 
   filter: blur(30px); 
   border-radius: 50%; 
 }
 
-.heroContent { 
+.heroText { 
   display: flex; 
   flex-direction: column; 
   gap: 16px; 
@@ -121,8 +136,8 @@
 }
 
 .primary:hover { 
-  transform: translateY(-1px); 
-  box-shadow: 0 10px 24px rgba(0,0,0,.2); 
+  transform: translateY(-3px) scale(1.05); 
+  box-shadow: 0 15px 35px rgba(0,0,0,.3); 
 }
 
 .reveal { 
@@ -144,10 +159,19 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .heroContent {
+    padding: 0 20px;
+    gap: 24px;
+  }
+}
+
 @media (max-width: 600px) {
-  .heroPanel { 
+  .heroContent { 
     grid-template-columns: 1fr; 
     text-align: center; 
+    padding: 0 16px;
+    gap: 20px;
   }
   
   .ctas {

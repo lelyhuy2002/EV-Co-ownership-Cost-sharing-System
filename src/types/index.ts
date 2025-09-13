@@ -1,6 +1,10 @@
 export interface Testimonial {
   text: string;
   avatar: string;
+  name: string;
+  position: string;
+  company: string;
+  companyLogo: string;
 }
 
 export interface Benefit {
@@ -13,6 +17,7 @@ export interface Step {
   number: string;
   title: string;
   description: string;
+  icon: string;
 }
 
 export interface FAQ {

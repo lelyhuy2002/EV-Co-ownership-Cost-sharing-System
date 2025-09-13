@@ -1,0 +1,13 @@
+<svg width="140" height="32" viewBox="0 0 140 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="msGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="10" height="10" fill="#F25022" rx="1"/>
+  <rect x="16" y="4" width="10" height="10" fill="#7FBA00" rx="1"/>
+  <rect x="4" y="16" width="10" height="10" fill="#00A4EF" rx="1"/>
+  <rect x="16" y="16" width="10" height="10" fill="#FFB900" rx="1"/>
+  <text x="36" y="22" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="700" fill="url(#msGradient)" letter-spacing="0.5px">Microsoft</text>
+</svg>

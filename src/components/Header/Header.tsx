@@ -1,65 +1,52 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Link } from "react-scroll";
 import styles from "./Header.module.css";
 import { NAVIGATION_ITEMS, COMPANY_INFO } from "@/constants";
 
 interface HeaderProps {
   headerHidden: boolean;
+  currentSection: number;
+  goToSection: (index: number) => void;
 }
 
-export default function Header({ headerHidden }: HeaderProps) {
+export default function Header({ headerHidden, currentSection, goToSection }: HeaderProps) {
   return (
     <header className={`${styles.header} ${headerHidden ? styles.headerHidden : ""}`}>
       <div className={styles.headerLeft}>
         <Image src={COMPANY_INFO.logo} alt={COMPANY_INFO.name} width={140} height={28} className={styles.brand} />
         <span className={styles.brandName}>{COMPANY_INFO.name}</span>
       </div>
-      <HeaderNav />
+      <HeaderNav currentSection={currentSection} goToSection={goToSection} />
     </header>
   );
 }
 
-function HeaderNav() {
-  const [active, setActive] = useState<string>("home");
+function HeaderNav({ currentSection, goToSection }: { currentSection: number; goToSection: (index: number) => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const sections = NAVIGATION_ITEMS.map(item => item.id);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        });
-      },
-      { rootMargin: "-40% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
-    );
-
-    sections.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleNavClick = (index: number) => {
+    goToSection(index);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       <nav className={`${styles.nav} ${isMobileMenuOpen ? styles.open : ""}`}>
-        {NAVIGATION_ITEMS.map((item) => (
-          <Link 
+        {NAVIGATION_ITEMS.map((item, index) => (
+          <button
             key={item.id}
-            href={item.href} 
-            className={`${styles.navLink} ${active === item.id ? styles.active : ""}`}
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={() => handleNavClick(index)}
+            className={`${styles.navLink} ${currentSection === index ? styles.active : ""}`}
           >
             <span>{item.emoji}</span>
             <span>{item.label}</span>
-          </Link>
+          </button>
         ))}
       </nav>
       

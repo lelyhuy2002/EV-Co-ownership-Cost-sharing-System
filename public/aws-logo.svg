@@ -1,0 +1,12 @@
+<svg width="120" height="36" viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="awsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M12 12L18 6L24 12L18 18L12 12Z" fill="url(#awsGradient)"/>
+  <path d="M30 12L36 6L42 12L36 18L30 12Z" fill="url(#awsGradient)"/>
+  <path d="M48 12L54 6L60 12L54 18L48 12Z" fill="url(#awsGradient)"/>
+  <text x="72" y="24" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-size="18" font-weight="700" fill="url(#awsGradient)" letter-spacing="0.5px">AWS</text>
+</svg>

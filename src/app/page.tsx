@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
+import useFullPageScroll from "@/hooks/useFullPageScroll";
 
 // Import components
 import Header from "@/components/Header/Header";
@@ -9,13 +10,14 @@ import Benefits from "@/components/Benefits/Benefits";
 import Partners from "@/components/Partners/Partners";
 import HowItWorks from "@/components/HowItWorks/HowItWorks";
 import Testimonials from "@/components/Testimonials/Testimonials";
-import FAQ from "@/components/FAQ/FAQ";
-import Newsletter from "@/components/Newsletter/Newsletter";
+import FAQNewsletter from "@/components/FAQNewsletter/FAQNewsletter";
 import Footer from "@/components/Footer/Footer";
+import NavigationIndicator from "@/components/NavigationIndicator/NavigationIndicator";
 
 export default function Home() {
   const [headerHidden, setHeaderHidden] = useState(false);
   const lastScrollRef = useRef(0);
+  const { currentSection, goToSection, totalSections } = useFullPageScroll();
 
   useEffect(() => {
     const onScroll = () => {
@@ -31,19 +33,41 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <Header headerHidden={headerHidden} />
+      <Header headerHidden={headerHidden} currentSection={currentSection} goToSection={goToSection} />
       
       <main className={styles.main}>
-        <Hero />
-        <Benefits />
-        <Partners />
-        <HowItWorks />
-        <Testimonials />
-        <FAQ />
-        <Newsletter />
+        <div data-section="0" className={styles.section}>
+          <Hero />
+        </div>
+        
+        <div data-section="1" className={styles.section}>
+          <Benefits />
+        </div>
+        
+        <div data-section="2" className={styles.section}>
+          <Partners />
+        </div>
+        
+        <div data-section="3" className={styles.section}>
+          <HowItWorks />
+        </div>
+        
+        <div data-section="4" className={styles.section}>
+          <Testimonials />
+        </div>
+        
+        <div data-section="5" className={styles.section}>
+          <FAQNewsletter />
+        </div>
       </main>
 
       <Footer />
+      
+      <NavigationIndicator 
+        currentSection={currentSection}
+        totalSections={totalSections}
+        goToSection={goToSection}
+      />
     </div>
   );
 }

@@ -1,0 +1,12 @@
+<svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="company3Gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <path d="M8 12L16 4L24 12L20 20L12 20L8 12Z" fill="url(#company3Gradient)"/>
+  <path d="M28 12L36 4L44 12L40 20L32 20L28 12Z" fill="url(#company3Gradient)"/>
+  <path d="M48 12L56 4L64 12L60 20L52 20L48 12Z" fill="url(#company3Gradient)"/>
+  <text x="76" y="26" font-family="'Inter', sans-serif" font-size="16" font-weight="700" fill="url(#company3Gradient)">DataFlow Inc</text>
+</svg>

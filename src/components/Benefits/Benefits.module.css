@@ -1,11 +1,14 @@
 .section { 
-  padding: 60px 24px; 
+  padding: 40px 0; 
   display: flex; 
   flex-direction: column; 
-  gap: 40px; 
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  gap: 24px; 
+  width: 100%;
+  background: linear-gradient(135deg, #fef7ed 0%, #fed7aa 30%, #fde68a 100%);
   position: relative;
   overflow: hidden;
+  flex: 1;
+  justify-content: center;
 }
 
 .section::before {
@@ -15,8 +18,8 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+  background: radial-gradient(circle at 30% 20%, rgba(251, 146, 60, 0.08) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 50%);
   animation: float 20s ease-in-out infinite;
   pointer-events: none;
 }
@@ -33,36 +36,34 @@
 
 .cards { 
   display: grid; 
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-  gap: 24px; 
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+  gap: 16px; 
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 24px;
   position: relative;
   z-index: 1;
+}
+
+.cardWrapper {
+  width: 100%;
 }
 
 .card { 
   border: 1px solid rgba(0,0,0,.08); 
   border-radius: 20px; 
-  padding: 28px; 
+  padding: 20px; 
   display: flex; 
   flex-direction: column; 
-  gap: 16px; 
+  gap: 12px; 
   background: #fff; 
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
   box-shadow: 0 4px 20px rgba(0,0,0,.08); 
   position: relative;
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(30px);
-  animation: slideUp 0.6s ease forwards;
+  cursor: pointer;
 }
 
-.card:nth-child(1) { animation-delay: 0.1s; }
-.card:nth-child(2) { animation-delay: 0.2s; }
-.card:nth-child(3) { animation-delay: 0.3s; }
-.card:nth-child(4) { animation-delay: 0.4s; }
-.card:nth-child(5) { animation-delay: 0.5s; }
 
 .card::before {
   content: '';
@@ -81,9 +82,9 @@
 }
 
 .card:hover { 
-  transform: translateY(-8px) scale(1.02); 
-  box-shadow: 0 20px 40px rgba(0,0,0,.15); 
-  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-12px) scale(1.05); 
+  box-shadow: 0 25px 50px rgba(0,0,0,.2); 
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .cardIcon { 
@@ -92,7 +93,7 @@
 }
 
 .card:hover .cardIcon {
-  transform: scale(1.1) rotate(5deg);
+  transform: scale(1.15) rotate(8deg);
 }
 
 .iconBadge { 
@@ -110,8 +111,8 @@
 }
 
 .card:hover .iconBadge {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+  transform: scale(1.2);
+  box-shadow: 0 12px 25px rgba(59, 130, 246, 0.5);
 }
 
 .cardTitle { 

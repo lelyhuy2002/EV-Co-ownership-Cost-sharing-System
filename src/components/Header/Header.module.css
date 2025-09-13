@@ -74,6 +74,9 @@
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .navLink::before {
@@ -111,8 +114,8 @@
 
 .navLink:hover { 
   color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
 }
 
 .active { 
@@ -173,8 +176,8 @@
 }
 
 .primary:hover { 
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.5);
   background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
 
@@ -192,8 +195,8 @@
 .secondary:hover {
   background: #3b82f6;
   color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
 }
 
 .auth { 
