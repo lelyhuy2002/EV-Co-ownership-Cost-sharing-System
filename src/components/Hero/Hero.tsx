@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./Hero.module.css";
+import Link from "next/link";
 import useParallax from "@/hooks/useParallax";
 import ScrollAnimation from "@/components/ScrollAnimation/ScrollAnimation";
 
@@ -21,6 +22,7 @@ export default function Hero() {
               </ul>
               <div className={styles.ctas}>
                 <a href="#marketplace" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>Trải nghiệm ngay</a>
+                <Link href="/co-owner-registration" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>Đăng ký</Link>
               </div>
             </div>
           </ScrollAnimation>

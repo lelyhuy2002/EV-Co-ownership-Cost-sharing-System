@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { Link } from "react-scroll";
+import NextLink from "next/link";
 import styles from "./Header.module.css";
 import { NAVIGATION_ITEMS, COMPANY_INFO } from "@/constants";
 
@@ -51,12 +51,12 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
       </nav>
       
       <div className={styles.headerCtas}>
-        <button className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
+        <NextLink href="/login" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
           Đăng nhập
-        </button>
-        <button className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>
+        </NextLink>
+        <NextLink href="/co-owner-registration" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>
           Đăng ký
-        </button>
+        </NextLink>
       </div>
       
       <button 
