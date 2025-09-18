@@ -264,7 +264,7 @@ export default function FindGroupsPage() {
                 <option value="">Tất cả tỷ lệ sở hữu</option>
                 <option value="low">Thấp (≤25%)</option>
                 <option value="medium">Trung bình (26-50%)</option>
-                <option value="high">Cao (>50%)</option>
+                <option value="high">Cao ({'>'}50%)</option>
               </select>
             </div>
           </div>
