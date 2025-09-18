@@ -1,0 +1,336 @@
+.container {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.actionsBar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.06);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.inviteInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(17,24,39,0.12);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.primaryBtn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #16a34a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.secondaryBtn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(17,24,39,0.12);
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.helperText {
+  color: #4b5563;
+  font-size: 14px;
+}
+
+/* Find & Join Groups styles */
+.searchSection {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.06);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.searchRow {
+  display: grid;
+  grid-template-columns: 1fr 200px 200px 150px;
+  gap: 12px;
+  align-items: end;
+}
+
+.searchInput {
+  padding: 12px 16px;
+  border: 1px solid rgba(17,24,39,0.12);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.filterSelect {
+  padding: 12px 16px;
+  border: 1px solid rgba(17,24,39,0.12);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.groupsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.groupCard {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.06);
+  border-radius: 14px;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.groupCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vehicleName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.vehicleModel {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.memberInfo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.memberCount {
+  text-align: center;
+}
+
+.memberCount .number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.memberCount .label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.ownershipInfo {
+  display: grid;
+  gap: 8px;
+}
+
+.ownershipBar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ownershipFill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.ownershipText {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.groupDetails {
+  display: grid;
+  gap: 8px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.detailLabel {
+  color: #6b7280;
+}
+
+.detailValue {
+  color: #111827;
+  font-weight: 500;
+}
+
+.joinBtn {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.joinBtn:hover {
+  background: #15803d;
+}
+
+.joinBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.statusOpen {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.statusFull {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .searchRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .groupsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.tabs {
+  display: inline-flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.tabBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tabActive {
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+}
+
+.search {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.cardTitle { font-weight: 600; }
+.meta { color: #6b7280; font-size: 12px; }
+.desc { color: #4b5563; font-size: 14px; }
+
+.ctaRow {
+  display: flex;
+  gap: 8px;
+}
+
+.btn, .linkBtn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #f9fafb;
+  text-align: center;
+  cursor: pointer;
+}
+
+.primary {
+  background: #111827;
+  color: white;
+  border-color: #111827;
+}
+
+@media (max-width: 960px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+

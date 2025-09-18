@@ -8,7 +8,7 @@ import { NAVIGATION_ITEMS, COMPANY_INFO } from "@/constants";
 interface HeaderProps {
   headerHidden: boolean;
   currentSection: number;
-  goToSection: (index: number) => void;
+  goToSection?: (index: number) => void;
 }
 
 export default function Header({ headerHidden, currentSection, goToSection }: HeaderProps) {
@@ -23,7 +23,7 @@ export default function Header({ headerHidden, currentSection, goToSection }: He
   );
 }
 
-function HeaderNav({ currentSection, goToSection }: { currentSection: number; goToSection: (index: number) => void }) {
+function HeaderNav({ currentSection, goToSection }: { currentSection: number; goToSection?: (index: number) => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -31,23 +31,44 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
   };
 
   const handleNavClick = (index: number) => {
-    goToSection(index);
+    if (goToSection) {
+      goToSection(index);
+    }
     setIsMobileMenuOpen(false);
   };
 
   return (
     <>
       <nav className={`${styles.nav} ${isMobileMenuOpen ? styles.open : ""}`}>
-        {NAVIGATION_ITEMS.map((item, index) => (
-          <button
-            key={item.id}
-            onClick={() => handleNavClick(index)}
-            className={`${styles.navLink} ${currentSection === index ? styles.active : ""}`}
-          >
-            <span>{item.emoji}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
+        {NAVIGATION_ITEMS.map((item, index) => {
+          // marketplace removed
+          if (item.id === "groups") {
+            return (
+              <NextLink key={item.id} href="/groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
+                <span>{item.emoji}</span>
+                <span>{item.label}</span>
+              </NextLink>
+            );
+          }
+          if (item.id === "find-groups") {
+            return (
+              <NextLink key={item.id} href="/find-groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
+                <span>{item.emoji}</span>
+                <span>{item.label}</span>
+              </NextLink>
+            );
+          }
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleNavClick(index)}
+              className={`${styles.navLink} ${currentSection === index ? styles.active : ""}`}
+            >
+              <span>{item.emoji}</span>
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
       
       <div className={styles.headerCtas}>

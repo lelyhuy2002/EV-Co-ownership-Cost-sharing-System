@@ -1,0 +1,564 @@
+/* Container */
+.container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 2rem 0;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.breadcrumbLink {
+  color: #16a34a;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbLink:hover {
+  color: #15803d;
+}
+
+.breadcrumbSeparator {
+  color: #6b7280;
+}
+
+.breadcrumbCurrent {
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Group Header */
+.groupHeader {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  padding: 0 20px;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vehicleInfo {
+  flex: 1;
+}
+
+.vehicleName {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.vehicleModel {
+  font-size: 1.25rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.groupMeta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.region,
+.purpose {
+  background: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.groupStatus {
+  text-align: right;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.statusOpen {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusFull {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.memberCount {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Main Content */
+.mainContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+.contentLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.contentRight {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sections */
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: #4b5563;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Vehicle Specifications */
+.specsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.specItem {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.specLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.specValue {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.features {
+  margin-top: 1rem;
+}
+
+.featuresTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.featuresList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.featureTag {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Rules and Benefits */
+.rulesList,
+.benefitsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ruleItem,
+.benefitItem {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+  color: #4b5563;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.ruleItem:last-child,
+.benefitItem:last-child {
+  border-bottom: none;
+}
+
+.ruleItem::before {
+  content: "⚠️";
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+}
+
+.benefitItem::before {
+  content: "✅";
+  position: absolute;
+  left: 0;
+  top: 0.75rem;
+}
+
+/* Join Card */
+.joinCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e5e7eb;
+}
+
+.joinTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.ownershipInfo {
+  margin-bottom: 1.5rem;
+}
+
+.ownershipBar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.ownershipFill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.ownershipText {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.costInfo {
+  background: #f0fdf4;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.costRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.costRow:last-child {
+  margin-bottom: 0;
+}
+
+.costLabel {
+  color: #166534;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.costValue {
+  color: #166534;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.joinBtn {
+  width: 100%;
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.joinBtn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.joinBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.joinForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.joinMessage {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.joinMessage:focus {
+  outline: none;
+  border-color: #16a34a;
+}
+
+.joinFormActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  flex: 1;
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.cancelBtn:hover {
+  background: #4b5563;
+}
+
+.submitBtn {
+  flex: 1;
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitBtn:hover {
+  background: #15803d;
+}
+
+/* Members Card */
+.membersCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.membersTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.memberItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.memberAvatar {
+  width: 40px;
+  height: 40px;
+  background: #16a34a;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.memberInfo {
+  flex: 1;
+}
+
+.memberName {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adminBadge {
+  background: #fbbf24;
+  color: #92400e;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.memberOwnership {
+  font-size: 0.875rem;
+  color: #16a34a;
+  font-weight: 500;
+  margin-bottom: 0.125rem;
+}
+
+.memberJoinDate {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Info Card */
+.infoCard {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}
+
+.infoTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.infoValue {
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .groupHeader {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .vehicleName {
+    font-size: 2rem;
+  }
+  
+  .mainContent {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .specsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .groupMeta {
+    justify-content: center;
+  }
+  
+  .groupStatus {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem 0;
+  }
+  
+  .groupHeader,
+  .section,
+  .joinCard,
+  .membersCard,
+  .infoCard {
+    margin: 0 -10px;
+    border-radius: 0;
+  }
+  
+  .vehicleName {
+    font-size: 1.75rem;
+  }
+}

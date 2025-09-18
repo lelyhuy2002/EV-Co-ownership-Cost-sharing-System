@@ -6,14 +6,13 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-lg) var(--spacing-xl);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
   transition: all var(--transition-normal);
   box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
+    0 2px 8px rgba(0, 0, 0, 0.05);
   border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   margin: 0 var(--spacing-sm);
   width: calc(100% - var(--spacing-md));
@@ -187,17 +186,18 @@
   left: 100%;
 }
 
+
 .primary { 
-  background: var(--gradient-primary); 
-  color: var(--primary-foreground); 
+  background: #16a34a; 
+  color: #ffffff; 
   box-shadow: var(--shadow-lg); 
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  border: 2px solid #16a34a;
 }
 
 .primary:hover { 
   transform: translateY(-3px) scale(1.02);
   box-shadow: var(--shadow-2xl);
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: #15803d;
 }
 
 .primary:active {
@@ -207,14 +207,14 @@
 
 .secondary {
   background: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: #16a34a;
+  border: 2px solid #16a34a;
   backdrop-filter: blur(10px);
 }
 
 .secondary:hover {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: #16a34a;
+  color: #ffffff;
   transform: translateY(-3px) scale(1.02);
   box-shadow: var(--shadow-xl);
 }

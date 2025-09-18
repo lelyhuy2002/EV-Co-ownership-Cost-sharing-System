@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   },
 };
 
+import UserRedirect from "@/components/UserRedirect/UserRedirect";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +36,9 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body>
-        {children}
+        <UserRedirect>
+          {children}
+        </UserRedirect>
       </body>
     </html>
   );
