@@ -150,7 +150,6 @@ export const TESTIMONIALS: Testimonial[] = [
 
 export const NAVIGATION_ITEMS: NavigationItem[] = [
   { href: "#home", label: "Trang chủ", emoji: "🏠", id: "home" },
-  { href: "/groups", label: "Nhóm đồng sở hữu", emoji: "👥", id: "groups" },
   { href: "/find-groups", label: "Tìm & Tham gia nhóm", emoji: "🔍", id: "find-groups" },
   { href: "#dashboard", label: "Dashboard", emoji: "📊", id: "dashboard" },
   { href: "#provider", label: "Trở thành Nhà cung cấp", emoji: "🚀", id: "provider" },

@@ -177,19 +177,34 @@ export default function GroupsPage() {
         <section className={styles.grid}>
           {myGroups.map((g) => (
             <article key={g.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>{g.name}</div>
+              <div className={styles.groupHeader}>
+                <div className={styles.groupTitle}>{g.name}</div>
                 <div className={styles.meta}>{g.memberCount} thành viên</div>
               </div>
-              <div className={styles.desc}>{g.description}</div>
-              <div className={styles.meta}>Tỷ lệ sở hữu của bạn: {g.myOwnershipPct}%</div>
-              <div className={styles.ctaRow}>
-                <Link href={`/groups/${g.id}/schedule`} className={`${styles.linkBtn}`}>Đặt lịch & sử dụng xe</Link>
-                <Link href={`/groups/${g.id}/costs`} className={`${styles.linkBtn}`}>Chi phí & thanh toán</Link>
+              <p className={styles.groupDesc}>{g.description}</p>
+              <div className={styles.progress}>
+                <div className={styles.progressTrack}>
+                  <div className={styles.progressFill} style={{ width: `${g.myOwnershipPct}%` }} />
+                </div>
+                <div className={styles.progressText}>Tỷ lệ sở hữu của bạn: {g.myOwnershipPct}%</div>
               </div>
-              <div className={styles.ctaRow}>
-                <Link href={`/groups/${g.id}/history`} className={`${styles.linkBtn}`}>Lịch sử & phân tích</Link>
-                <Link href={`/groups/${g.id}/manage`} className={`${styles.linkBtn} ${styles.primary}`}>Quản lý nhóm</Link>
+              <div className={styles.actionGroups}>
+                <div className={styles.actionGroup}>
+                  <Link href={`/groups/${g.id}/schedule`} className={`${styles.linkBtn}`}>
+                    <span>🗓️</span> <span>Đặt lịch & sử dụng xe</span>
+                  </Link>
+                  <Link href={`/groups/${g.id}/costs`} className={`${styles.linkBtn}`}>
+                    <span>💳</span> <span>Chi phí & thanh toán</span>
+                  </Link>
+                </div>
+                <div className={styles.actionGroup}>
+                  <Link href={`/groups/${g.id}/history`} className={`${styles.linkBtn}`}>
+                    <span>📈</span> <span>Lịch sử & phân tích</span>
+                  </Link>
+                  <Link href={`/groups/${g.id}/manage`} className={`${styles.linkBtn} ${styles.primary}`}>
+                    <span>🛠️</span> <span>Quản lý nhóm</span>
+                  </Link>
+                </div>
               </div>
             </article>
           ))}
@@ -198,14 +213,19 @@ export default function GroupsPage() {
         <section className={styles.grid}>
           {discoverGroups.map((g) => (
             <article key={g.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>{g.name}</div>
+              <div className={styles.groupHeader}>
+                <div className={styles.groupTitle}>{g.name}</div>
                 <div className={styles.meta}>{g.memberCount} thành viên</div>
               </div>
-              <div className={styles.desc}>{g.description}</div>
-              <div className={styles.meta}>Tỷ lệ sở hữu còn trống: {g.availableOwnershipPct}%</div>
-              <div className={styles.ctaRow}>
-                <button className={styles.btn}>Yêu cầu tham gia</button>
+              <p className={styles.groupDesc}>{g.description}</p>
+              <div className={styles.progress}>
+                <div className={styles.progressTrack}>
+                  <div className={styles.progressFillAlt} style={{ width: `${g.availableOwnershipPct}%` }} />
+                </div>
+                <div className={styles.progressText}>Tỷ lệ sở hữu còn trống: {g.availableOwnershipPct}%</div>
+              </div>
+              <div className={styles.actionGroup}>
+                <button className={styles.btn}><span>➕</span> Yêu cầu tham gia</button>
                 <Link href={`/groups/${g.id}`} className={styles.linkBtn}>Tìm hiểu thêm</Link>
               </div>
             </article>
