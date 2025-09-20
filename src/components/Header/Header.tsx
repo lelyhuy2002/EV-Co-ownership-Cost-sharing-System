@@ -58,6 +58,22 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
               </NextLink>
             );
           }
+          if (item.id === "dashboard") {
+            return (
+              <NextLink key={item.id} href="/groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
+                <span>{item.emoji}</span>
+                <span>{item.label}</span>
+              </NextLink>
+            );
+          }
+          if (item.id === "provider") {
+            return (
+              <NextLink key={item.id} href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
+                <span>{item.emoji}</span>
+                <span>{item.label}</span>
+              </NextLink>
+            );
+          }
           return (
             <button
               key={item.id}
