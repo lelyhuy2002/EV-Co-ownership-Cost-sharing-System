@@ -6,6 +6,94 @@ import styles from "./page.module.css";
 import Header from "@/components/Header/Header";
 import { useRouter } from "next/navigation";
 
+// Group List Item Component for List View
+function GroupListItem({ group, onJoin, onViewDetails }: { 
+  group: GroupToJoin; 
+  onJoin: (id: string) => void; 
+  onViewDetails: (id: string) => void; 
+}) {
+  return (
+    <article className={`${styles.listItem} ${styles[group.color]}`}>
+      {/* Status Badge - Moved to top for better visibility */}
+      <div className={styles.statusBadgeContainer}>
+        <span className={`${styles.statusBadge} ${styles[`status${group.status.charAt(0).toUpperCase() + group.status.slice(1)}`]}`}>
+          {group.status === "open" ? "🟢 Còn trống" : "🔴 Đã đầy"}
+        </span>
+      </div>
+
+      <div className={styles.listItemHeader}>
+        <div className={styles.vehicleIcon}>{group.icon}</div>
+        <div className={styles.vehicleInfo}>
+          <h3 className={styles.vehicleName}>{group.vehicleName}</h3>
+          <p className={styles.vehicleModel}>{group.vehicleModel}</p>
+          <div className={styles.rating}>
+            <span className={styles.stars}>{"★".repeat(Math.floor(group.rating))}</span>
+            <span className={styles.ratingValue}>{group.rating}</span>
+            <span className={styles.reviewCount}>({group.reviewCount})</span>
+          </div>
+        </div>
+        <div className={styles.priceSection}>
+          <div className={styles.priceRange}>{group.priceRange}</div>
+        </div>
+      </div>
+
+      <div className={styles.listItemContent}>
+        <div className={styles.memberStats}>
+          <div className={styles.statItem}>
+            <span className={styles.statNumber}>{group.currentMembers}</span>
+            <span className={styles.statLabel}>Thành viên</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statNumber}>{group.maxMembers - group.currentMembers}</span>
+            <span className={styles.statLabel}>Cần thêm</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statNumber}>{group.ownershipAvailable}%</span>
+            <span className={styles.statLabel}>Sở hữu còn lại</span>
+          </div>
+        </div>
+
+        <div className={styles.groupMeta}>
+          <div className={styles.metaItem}>
+            <span className={styles.metaIcon}>📍</span>
+            <span>{group.region}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaIcon}>🎯</span>
+            <span>{group.purpose}</span>
+          </div>
+          <div className={styles.metaItemCompact}>
+            <span className={styles.metaIcon}>👤</span>
+            <span className={styles.adminNameCompact}>{group.adminName}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaIcon}>📅</span>
+            <span>{group.createdDate}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.listItemActions}>
+        <button
+          className={styles.primaryActionBtn}
+          onClick={() => onJoin(group.id)}
+          disabled={group.status === "full"}
+        >
+          {group.status === "full" ? "Đã đầy" : "Tham gia ngay"}
+        </button>
+        <button
+          className={styles.secondaryActionBtn}
+          onClick={() => onViewDetails(group.id)}
+        >
+          Xem chi tiết
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// GroupCard component removed - using list view only for better UX
+
 interface MyGroup {
   id: string;
   name: string;
@@ -20,18 +108,7 @@ interface MyGroup {
   vehicleType: string;
 }
 
-interface DiscoverGroup {
-  id: string;
-  name: string;
-  description: string;
-  availableOwnershipPct: number;
-  memberCount: number;
-  icon: string;
-  color: string;
-  rating: number;
-  reviewCount: number;
-  category: string;
-}
+// DiscoverGroup interface removed - consolidated functionality
 
 interface GroupToJoin {
   id: string;
@@ -81,44 +158,7 @@ const MY_GROUPS: MyGroup[] = [
   },
 ];
 
-const DISCOVER_GROUPS: DiscoverGroup[] = [
-  { 
-    id: "grp-11", 
-    name: "Charging Explorers", 
-    description: "Nhóm test tuyến sạc đường dài.", 
-    availableOwnershipPct: 15, 
-    memberCount: 5,
-    icon: "🔋",
-    color: "orange",
-    rating: 4.6,
-    reviewCount: 18,
-    category: "Research"
-  },
-  { 
-    id: "grp-12", 
-    name: "EcoDrive Study", 
-    description: "Nghiên cứu thói quen lái xe đô thị.", 
-    availableOwnershipPct: 30, 
-    memberCount: 3,
-    icon: "🌱",
-    color: "green",
-    rating: 4.7,
-    reviewCount: 12,
-    category: "Research"
-  },
-  { 
-    id: "grp-13", 
-    name: "V2G Pilot", 
-    description: "Thí điểm giao dịch V2G khu vực HN.", 
-    availableOwnershipPct: 20, 
-    memberCount: 6,
-    icon: "⚡",
-    color: "purple",
-    rating: 4.5,
-    reviewCount: 15,
-    category: "Pilot"
-  },
-];
+// DISCOVER_GROUPS removed - consolidated into GROUPS_TO_JOIN for better UX
 
 const GROUPS_TO_JOIN: GroupToJoin[] = [
   {
@@ -196,16 +236,17 @@ const GROUPS_TO_JOIN: GroupToJoin[] = [
 ];
 
 export default function GroupsPage() {
-  const [activeTab, setActiveTab] = useState<"mine" | "discover" | "find">("mine");
+  const [activeTab, setActiveTab] = useState<"mine" | "discover" | "requests">("mine");
   const [query, setQuery] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
   const [vehicleFilter, setVehicleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
   const [priceRange, setPriceRange] = useState([0, 5000000]);
-  const [ratingFilter, setRatingFilter] = useState(0);
   const [showAIRecommendations, setShowAIRecommendations] = useState(false);
+  // Removed viewMode state - using list view only
+  const [sortBy, setSortBy] = useState("newest");
+  const [showFullGroups, setShowFullGroups] = useState(false);
   const router = useRouter();
 
   // AI Recommendations based on user behavior
@@ -224,7 +265,7 @@ export default function GroupsPage() {
 
   const handleNavClick = (index: number) => {
     // Map navigation indices to routes
-    const routes = ["/home", "/groups", "/dashboard", "/provider", "/about", "/contact"];
+    const routes = ["/home", "/groups", "/dashboard", "/about", "/contact"];
     if (routes[index]) {
       router.push(routes[index]);
     }
@@ -234,9 +275,7 @@ export default function GroupsPage() {
     return MY_GROUPS.filter(g => query ? (g.name + " " + g.description).toLowerCase().includes(query.toLowerCase()) : true);
   }, [query]);
 
-  const discoverGroups = useMemo(() => {
-    return DISCOVER_GROUPS.filter(g => query ? (g.name + " " + g.description).toLowerCase().includes(query.toLowerCase()) : true);
-  }, [query]);
+  // Removed discoverGroups as it's no longer used after consolidation
 
   const filteredGroupsToJoin = useMemo(() => {
     return GROUPS_TO_JOIN.filter(group => {
@@ -247,8 +286,6 @@ export default function GroupsPage() {
       
       const matchesRegion = regionFilter ? group.region === regionFilter : true;
       const matchesVehicle = vehicleFilter ? group.vehicleName === vehicleFilter : true;
-      const matchesStatus = statusFilter ? group.status === statusFilter : true;
-      const matchesRating = group.rating >= ratingFilter;
       
       // Parse price range for filtering (simplified)
       const groupPrice = group.priceRange.includes("1-2M") ? 1500000 : 
@@ -256,9 +293,54 @@ export default function GroupsPage() {
                         group.priceRange.includes("3-4M") ? 3500000 : 2000000;
       const matchesPrice = groupPrice >= priceRange[0] && groupPrice <= priceRange[1];
       
-      return matchesSearch && matchesRegion && matchesVehicle && matchesStatus && matchesRating && matchesPrice;
+      return matchesSearch && matchesRegion && matchesVehicle && matchesPrice;
     });
-  }, [searchQuery, regionFilter, vehicleFilter, statusFilter, ratingFilter, priceRange]);
+  }, [searchQuery, regionFilter, vehicleFilter, priceRange]);
+
+  // Separate open and full groups
+  const { openGroups, fullGroups } = useMemo(() => {
+    const open = filteredGroupsToJoin.filter(group => group.status === "open");
+    const full = filteredGroupsToJoin.filter(group => group.status === "full");
+    
+    // Sort groups based on selected criteria
+    const sortGroups = (groups: typeof GROUPS_TO_JOIN) => {
+      return [...groups].sort((a, b) => {
+        switch (sortBy) {
+          case "newest":
+            return new Date(b.createdDate.split('/').reverse().join('-')).getTime() - 
+                   new Date(a.createdDate.split('/').reverse().join('-')).getTime();
+          case "rating":
+            return b.rating - a.rating;
+          case "members":
+            return b.currentMembers - a.currentMembers;
+          case "price":
+            const priceA = a.priceRange.includes("1-2M") ? 1500000 : 
+                          a.priceRange.includes("2-3M") ? 2500000 : 
+                          a.priceRange.includes("3-4M") ? 3500000 : 2000000;
+            const priceB = b.priceRange.includes("1-2M") ? 1500000 : 
+                          b.priceRange.includes("2-3M") ? 2500000 : 
+                          b.priceRange.includes("3-4M") ? 3500000 : 2000000;
+            return priceA - priceB;
+          default:
+            return 0;
+        }
+      });
+    };
+    
+    return {
+      openGroups: sortGroups(open),
+      fullGroups: sortGroups(full)
+    };
+  }, [filteredGroupsToJoin, sortBy]);
+
+  // Event handlers
+  const handleJoinGroup = (groupId: string) => {
+    alert(`Đã gửi yêu cầu tham gia nhóm ${groupId}. Admin sẽ xem xét và phản hồi.`);
+  };
+
+  const handleViewDetails = (groupId: string) => {
+    router.push(`/groups/${groupId}/details`);
+  };
 
   return (
     <>
@@ -274,7 +356,7 @@ export default function GroupsPage() {
         <button className={styles.secondaryBtn} onClick={() => {/* future: validate & join */}}>Tham gia</button>
         <button className={styles.primaryBtn} onClick={() => {/* future: create group flow */}}>Tạo nhóm mới</button>
         <div className={styles.helperText}>
-          Dán liên kết mời từ bạn bè hoặc nhấn "Tạo nhóm mới" để bắt đầu. Người tạo sẽ trở thành Admin nhóm.
+          Dán liên kết mời từ bạn bè hoặc nhấn &quot;Tạo nhóm mới&quot; để bắt đầu. Người tạo sẽ trở thành Admin nhóm.
         </div>
       </div>
       <div className={styles.pageHeader}>
@@ -292,9 +374,9 @@ export default function GroupsPage() {
               <span>🔍</span>
               <span>Khám phá nhóm</span>
             </button>
-            <button className={`${styles.tabBtn} ${activeTab === "find" ? styles.tabActive : ""}`} onClick={() => setActiveTab("find")}>
-              <span>➕</span>
-              <span>Tìm & Tham gia</span>
+            <button className={`${styles.tabBtn} ${activeTab === "requests" ? styles.tabActive : ""}`} onClick={() => setActiveTab("requests")}>
+              <span>📝</span>
+              <span>Yêu cầu tham gia</span>
             </button>
           </div>
         </div>
@@ -359,53 +441,40 @@ export default function GroupsPage() {
           ))}
         </section>
       ) : activeTab === "discover" ? (
-        <section className={styles.enhancedGrid}>
-          {discoverGroups.map((g) => (
-            <article key={g.id} className={`${styles.enhancedCard} ${styles[g.color]}`}>
-              <div className={styles.cardHeader}>
-                <div className={styles.groupIcon}>{g.icon}</div>
-                <div className={styles.groupInfo}>
-                  <h3 className={styles.groupTitle}>{g.name}</h3>
-                  <div className={styles.groupMeta}>
-                    <span className={styles.memberCount}>{g.memberCount} thành viên</span>
-                    <div className={styles.rating}>
-                      <span className={styles.stars}>{"★".repeat(Math.floor(g.rating))}</span>
-                      <span className={styles.ratingValue}>{g.rating}</span>
-                      <span className={styles.reviewCount}>({g.reviewCount})</span>
-                    </div>
-                  </div>
+        <div className={styles.discoverContainer}>
+          {/* Compact Header */}
+          <div className={styles.discoverHeader}>
+            <div className={styles.headerContent}>
+              <h1 className={styles.discoverTitle}>Tìm & Tham gia nhóm</h1>
+              <div className={styles.statsRow}>
+                <div className={styles.statItem}>
+                  <span className={styles.statNumber}>{GROUPS_TO_JOIN.filter(g => g.status === "open").length}</span>
+                  <span className={styles.statLabel}>Nhóm mở</span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statNumber}>{GROUPS_TO_JOIN.reduce((sum, g) => sum + (g.maxMembers - g.currentMembers), 0)}</span>
+                  <span className={styles.statLabel}>Vị trí trống</span>
+                </div>
+                <div className={styles.statItem}>
+                  <span className={styles.statNumber}>{GROUPS_TO_JOIN.length}</span>
+                  <span className={styles.statLabel}>Tổng nhóm</span>
                 </div>
               </div>
-              
-              <div className={styles.categoryBadge}>
-                <span className={styles.category}>{g.category}</span>
+            </div>
+          </div>
+
+          {/* Unified Search & Filter Section */}
+          <div className={styles.searchFilterSection}>
+            <div className={styles.searchRow}>
+              <div className={styles.searchInputWrapper}>
+                <input
+                  className={styles.searchInput}
+                  placeholder="Tìm kiếm nhóm theo tên xe, khu vực..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <span className={styles.searchIcon}>🔍</span>
               </div>
-              
-              <p className={styles.groupDesc}>{g.description}</p>
-              
-              <div className={styles.progress}>
-                <div className={styles.progressTrack}>
-                  <div className={styles.progressFillAlt} style={{ width: `${g.availableOwnershipPct}%` }} />
-                </div>
-                <div className={styles.progressText}>Tỷ lệ sở hữu còn trống: {g.availableOwnershipPct}%</div>
-              </div>
-              
-              <div className={styles.actionGroups}>
-                <button className={styles.primaryBtn}>
-                  <span>➕</span> <span>Yêu cầu tham gia</span>
-                </button>
-                <Link href={`/groups/${g.id}`} className={styles.secondaryBtn}>
-                  <span>ℹ️</span> <span>Tìm hiểu thêm</span>
-                </Link>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : (
-        <>
-          <div className={styles.enhancedSearchSection}>
-            <div className={styles.searchHeader}>
-              <h3>Tìm kiếm & Lọc nhóm</h3>
               <button 
                 className={styles.aiToggle}
                 onClick={() => setShowAIRecommendations(!showAIRecommendations)}
@@ -414,202 +483,246 @@ export default function GroupsPage() {
                 <span>AI Gợi ý</span>
               </button>
             </div>
-            
-            <div className={styles.searchRow}>
-              <div className={styles.searchInputWrapper}>
-                <input
-                  className={styles.searchInput}
-                  placeholder="Tìm kiếm theo tên xe, khu vực, mục đích sử dụng..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <span className={styles.searchIcon}>🔍</span>
-              </div>
+
+            <div className={styles.filtersRow}>
+              <select
+                className={styles.filterSelect}
+                value={regionFilter}
+                onChange={(e) => setRegionFilter(e.target.value)}
+              >
+                <option value="">Tất cả khu vực</option>
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="TP.HCM">TP.HCM</option>
+                <option value="Đà Nẵng">Đà Nẵng</option>
+              </select>
               
-              <div className={styles.filtersRow}>
-                <select
-                  className={styles.filterSelect}
-                  value={regionFilter}
-                  onChange={(e) => setRegionFilter(e.target.value)}
-                >
-                  <option value="">Tất cả khu vực</option>
-                  <option value="Hà Nội">Hà Nội</option>
-                  <option value="TP.HCM">TP.HCM</option>
-                  <option value="Đà Nẵng">Đà Nẵng</option>
-                </select>
-                
-                <select
-                  className={styles.filterSelect}
-                  value={vehicleFilter}
-                  onChange={(e) => setVehicleFilter(e.target.value)}
-                >
-                  <option value="">Tất cả xe</option>
-                  <option value="Tesla Model 3">Tesla Model 3</option>
-                  <option value="Tesla Model Y">Tesla Model Y</option>
-                  <option value="VinFast VF8">VinFast VF8</option>
-                  <option value="BYD Atto 3">BYD Atto 3</option>
-                </select>
-                
-                <select
-                  className={styles.filterSelect}
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="">Tất cả trạng thái</option>
-                  <option value="open">Đang mở</option>
-                  <option value="full">Đã đầy</option>
-                </select>
-                
-                <select
-                  className={styles.filterSelect}
-                  value={ratingFilter}
-                  onChange={(e) => setRatingFilter(Number(e.target.value))}
-                >
-                  <option value={0}>Tất cả đánh giá</option>
-                  <option value={4}>4+ sao</option>
-                  <option value={4.5}>4.5+ sao</option>
-                  <option value={4.8}>4.8+ sao</option>
-                </select>
-              </div>
+              <select
+                className={styles.filterSelect}
+                value={vehicleFilter}
+                onChange={(e) => setVehicleFilter(e.target.value)}
+              >
+                <option value="">Tất cả xe</option>
+                <option value="Tesla Model 3">Tesla Model 3</option>
+                <option value="Tesla Model Y">Tesla Model Y</option>
+                <option value="VinFast VF8">VinFast VF8</option>
+                <option value="BYD Atto 3">BYD Atto 3</option>
+              </select>
               
-              <div className={styles.priceFilter}>
-                <label>Khoảng giá: {priceRange[0].toLocaleString()}đ - {priceRange[1].toLocaleString()}đ</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="5000000"
-                  step="500000"
-                  value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                  className={styles.priceSlider}
-                />
+              <select
+                className={styles.filterSelect}
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([0, Number(e.target.value)])}
+              >
+                <option value={5000000}>Tất cả giá</option>
+                <option value={1000000}>Dưới 1M</option>
+                <option value={2000000}>1-2M</option>
+                <option value={3000000}>2-3M</option>
+                <option value={4000000}>3-4M</option>
+                <option value={5000000}>Trên 4M</option>
+              </select>
+
+              <div className={styles.sortGroup}>
+                <label>Sắp xếp:</label>
+                <select 
+                  className={styles.sortSelect}
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="newest">Mới nhất</option>
+                  <option value="rating">Đánh giá cao</option>
+                  <option value="members">Số thành viên</option>
+                  <option value="price">Giá tham gia</option>
+                </select>
               </div>
+
+              <button 
+                className={`${styles.filterBtn} ${showFullGroups ? styles.active : ''}`}
+                onClick={() => setShowFullGroups(!showFullGroups)}
+              >
+                {showFullGroups ? '✅' : '☐'} Nhóm đầy
+              </button>
             </div>
           </div>
 
+          {/* AI Recommendations - Simplified */}
           {showAIRecommendations && (
-            <div className={styles.aiRecommendations}>
-              <h3>🤖 AI Gợi ý cho bạn</h3>
-              {aiRecommendations.map((rec) => (
-                <div key={rec.id} className={styles.aiSection}>
-                  <h4>{rec.title}</h4>
-                  <div className={styles.aiGrid}>
-                    {rec.groups.map((group) => (
-                      <div key={group.id} className={styles.aiCard}>
-                        <div className={styles.aiCardHeader}>
+            <div className={styles.aiSection}>
+              <h3>🤖 Gợi ý cho bạn</h3>
+              <div className={styles.aiCards}>
+                {aiRecommendations.map((rec) => (
+                  <div key={rec.id} className={styles.aiCard}>
+                    <h4>{rec.title}</h4>
+                    <div className={styles.aiGroupList}>
+                      {rec.groups.map((group) => (
+                        <div key={group.id} className={styles.aiGroupItem}>
                           <span className={styles.aiIcon}>{group.icon}</span>
-                          <div>
+                          <div className={styles.aiInfo}>
                             <div className={styles.aiVehicleName}>{group.vehicleName}</div>
-                            <div className={styles.aiRating}>
-                              {"★".repeat(Math.floor(group.rating))} {group.rating}
-                            </div>
+                            <div className={styles.aiMeta}>📍 {group.region} • 💰 {group.priceRange} • ⭐ {group.rating}</div>
                           </div>
+                          <button className={styles.aiJoinBtn} onClick={() => handleJoinGroup(group.id)}>Tham gia</button>
                         </div>
-                        <div className={styles.aiCardDetails}>
-                          <div>📍 {group.region}</div>
-                          <div>💰 {group.priceRange}</div>
-                          <div>👥 {group.currentMembers}/{group.maxMembers} thành viên</div>
-                        </div>
-                        <button className={styles.aiJoinBtn}>Tham gia ngay</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <section className={styles.enhancedGroupsGrid}>
-            {filteredGroupsToJoin.map(group => (
-              <article key={group.id} className={`${styles.enhancedGroupCard} ${styles[group.color]}`}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.vehicleIcon}>{group.icon}</div>
-                  <div className={styles.vehicleInfo}>
-                    <div className={styles.vehicleName}>{group.vehicleName}</div>
-                    <div className={styles.vehicleModel}>{group.vehicleModel}</div>
-                    <div className={styles.rating}>
-                      <span className={styles.stars}>{"★".repeat(Math.floor(group.rating))}</span>
-                      <span className={styles.ratingValue}>{group.rating}</span>
-                      <span className={styles.reviewCount}>({group.reviewCount})</span>
+                      ))}
                     </div>
                   </div>
-                  <span className={`${styles.statusBadge} ${styles[`status${group.status.charAt(0).toUpperCase() + group.status.slice(1)}`]}`}>
-                    {group.status === "open" ? "Đang mở" : "Đã đầy"}
-                  </span>
-                </div>
-
-                <div className={styles.priceInfo}>
-                  <span className={styles.priceRange}>{group.priceRange}</span>
-                </div>
-
-                <div className={styles.memberInfo}>
-                  <div className={styles.memberCount}>
-                    <div className={styles.number}>{group.currentMembers}</div>
-                    <div className={styles.label}>Thành viên</div>
-                  </div>
-                  <div className={styles.memberCount}>
-                    <div className={styles.number}>{group.maxMembers - group.currentMembers}</div>
-                    <div className={styles.label}>Cần thêm</div>
-                  </div>
-                </div>
-
-                <div className={styles.ownershipInfo}>
-                  <div className={styles.ownershipBar}>
-                    <div 
-                      className={styles.ownershipFill}
-                      style={{ width: `${group.ownershipAvailable}%` }}
-                    />
-                  </div>
-                  <div className={styles.ownershipText}>
-                    Tỷ lệ sở hữu còn lại: {group.ownershipAvailable}%
-                  </div>
-                </div>
-
-                <div className={styles.groupDetails}>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>📍 Khu vực:</span>
-                    <span className={styles.detailValue}>{group.region}</span>
-                  </div>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>🎯 Mục đích:</span>
-                    <span className={styles.detailValue}>{group.purpose}</span>
-                  </div>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>👤 Admin:</span>
-                    <span className={styles.detailValue}>{group.adminName}</span>
-                  </div>
-                  <div className={styles.detailRow}>
-                    <span className={styles.detailLabel}>📅 Tạo ngày:</span>
-                    <span className={styles.detailValue}>{group.createdDate}</span>
-                  </div>
-                </div>
-
-                <div className={styles.actionButtons}>
-                  <button
-                    className={styles.primaryActionBtn}
-                    onClick={() => alert(`Đã gửi yêu cầu tham gia nhóm ${group.id}. Admin sẽ xem xét và phản hồi.`)}
-                    disabled={group.status === "full"}
-                  >
-                    {group.status === "full" ? "Đã đầy" : "Gửi yêu cầu tham gia"}
-                  </button>
-                  <button
-                    className={styles.secondaryActionBtn}
-                    onClick={() => router.push(`/groups/${group.id}/details`)}
-                  >
-                    Chi tiết
-                  </button>
-                </div>
-              </article>
-            ))}
-          </section>
-
-          {filteredGroupsToJoin.length === 0 && (
-            <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>
-              <p>Không tìm thấy nhóm nào phù hợp với tiêu chí tìm kiếm.</p>
-              <p>Hãy thử điều chỉnh bộ lọc hoặc tạo nhóm mới.</p>
+                ))}
+              </div>
             </div>
           )}
-        </>
+
+          {/* Groups List */}
+          <div className={styles.groupsSection}>
+            {openGroups.length > 0 && (
+              <div className={styles.groupCategory}>
+                <div className={styles.categoryHeader}>
+                  <h3 className={styles.categoryTitle}>
+                    🟢 Nhóm đang cần thành viên ({openGroups.length})
+                  </h3>
+                </div>
+                <div className={styles.groupsList}>
+                  {openGroups.map(group => (
+                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showFullGroups && fullGroups.length > 0 && (
+              <div className={styles.groupCategory}>
+                <div className={styles.categoryHeader}>
+                  <h3 className={styles.categoryTitle}>
+                    🔴 Nhóm đã đầy ({fullGroups.length})
+                  </h3>
+                </div>
+                <div className={styles.groupsList}>
+                  {fullGroups.map(group => (
+                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {filteredGroupsToJoin.length === 0 && (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>🔍</div>
+                <h3>Không tìm thấy nhóm phù hợp</h3>
+                <p>Hãy thử điều chỉnh bộ lọc hoặc tạo nhóm mới.</p>
+                <button className={styles.createGroupBtn} onClick={() => alert('Chức năng tạo nhóm sẽ được triển khai sớm!')}>
+                  Tạo nhóm mới
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Tab "Yêu cầu tham gia" */
+        <section className={styles.requestsSection}>
+          <div className={styles.requestsHeader}>
+            <h2>Yêu cầu tham gia của bạn</h2>
+            <p>Theo dõi trạng thái các yêu cầu tham gia nhóm mà bạn đã gửi</p>
+          </div>
+
+          <div className={styles.requestsGrid}>
+            {/* Mock data for join requests */}
+            <article className={styles.requestCard}>
+              <div className={styles.requestHeader}>
+                <div className={styles.groupIcon}>⚡</div>
+                <div className={styles.requestInfo}>
+                  <h3>Tesla Model 3 - Hà Nội</h3>
+                  <div className={styles.requestMeta}>
+                    <span className={styles.status}>⏳ Đang chờ duyệt</span>
+                    <span className={styles.date}>Gửi ngày: 25/01/2025</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.requestDetails}>
+                <div className={styles.detailRow}>
+                  <span>Admin:</span>
+                  <span>Nguyễn Văn A</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span>Lời nhắn:</span>
+                  <span>&quot;Tôi muốn tham gia nhóm để sử dụng xe cuối tuần&quot;</span>
+                </div>
+              </div>
+
+              <div className={styles.requestActions}>
+                <button className={styles.cancelBtn}>Hủy yêu cầu</button>
+                <button className={styles.contactBtn}>Liên hệ Admin</button>
+              </div>
+            </article>
+
+            <article className={styles.requestCard}>
+              <div className={styles.requestHeader}>
+                <div className={styles.groupIcon}>🚗</div>
+                <div className={styles.requestInfo}>
+                  <h3>VinFast VF8 - TP.HCM</h3>
+                  <div className={styles.requestMeta}>
+                    <span className={`${styles.status} ${styles.approved}`}>✅ Đã chấp nhận</span>
+                    <span className={styles.date}>Duyệt ngày: 24/01/2025</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.requestDetails}>
+                <div className={styles.detailRow}>
+                  <span>Admin:</span>
+                  <span>Trần Thị B</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span>Lời nhắn:</span>
+                  <span>&quot;Cảm ơn bạn đã chấp nhận! Hãy cùng nhau chia sẻ xe.&quot;</span>
+                </div>
+              </div>
+
+              <div className={styles.requestActions}>
+                <button className={styles.primaryBtn}>Xem nhóm</button>
+                <button className={styles.secondaryBtn}>Đánh giá</button>
+              </div>
+            </article>
+
+            <article className={styles.requestCard}>
+              <div className={styles.requestHeader}>
+                <div className={styles.groupIcon}>🔋</div>
+                <div className={styles.requestInfo}>
+                  <h3>BYD Atto 3 - Đà Nẵng</h3>
+                  <div className={styles.requestMeta}>
+                    <span className={`${styles.status} ${styles.rejected}`}>❌ Từ chối</span>
+                    <span className={styles.date}>Phản hồi ngày: 23/01/2025</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.requestDetails}>
+                <div className={styles.detailRow}>
+                  <span>Admin:</span>
+                  <span>Lê Văn C</span>
+                </div>
+                <div className={styles.detailRow}>
+                  <span>Lý do từ chối:</span>
+                  <span>&quot;Nhóm đã đủ thành viên, xin lỗi vì sự bất tiện này.&quot;</span>
+                </div>
+              </div>
+
+              <div className={styles.requestActions}>
+                <button className={styles.primaryBtn}>Tìm nhóm khác</button>
+                <button className={styles.secondaryBtn}>Gửi phản hồi</button>
+              </div>
+            </article>
+          </div>
+
+          {false && ( /* Show when no requests */
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon}>📝</div>
+              <h3>Chưa có yêu cầu tham gia nào</h3>
+              <p>Hãy khám phá các nhóm có sẵn và gửi yêu cầu tham gia để bắt đầu hành trình chia sẻ xe điện.</p>
+              <button className={styles.primaryBtn} onClick={() => setActiveTab("discover")}>
+                Khám phá nhóm
+              </button>
+            </div>
+          )}
+        </section>
       )}
       </main>
     </>

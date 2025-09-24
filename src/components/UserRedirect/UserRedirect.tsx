@@ -12,8 +12,8 @@ interface UserRedirectProps {
 
 export default function UserRedirect({ 
   children, 
-  redirectPath = '/find-groups',
-  allowedPaths = ['/find-groups', '/login', '/register']
+  redirectPath = '/groups',
+  allowedPaths = ['/groups', '/login', '/register']
 }: UserRedirectProps) {
   const { user, loading, isNewUser } = useUserGroups();
   const router = useRouter();

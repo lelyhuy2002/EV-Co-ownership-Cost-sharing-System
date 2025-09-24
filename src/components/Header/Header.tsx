@@ -41,39 +41,16 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
     <>
       <nav className={`${styles.nav} ${isMobileMenuOpen ? styles.open : ""}`}>
         {NAVIGATION_ITEMS.map((item, index) => {
-          // marketplace removed
-          if (item.id === "groups") {
+          // Direct links for specific pages
+          if (item.id === "groups" || item.id === "dashboard") {
             return (
-              <NextLink key={item.id} href="/groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
+              <NextLink key={item.id} href={item.href} onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
                 <span>{item.emoji}</span>
                 <span>{item.label}</span>
               </NextLink>
             );
           }
-          if (item.id === "find-groups") {
-            return (
-              <NextLink key={item.id} href="/find-groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
-                <span>{item.emoji}</span>
-                <span>{item.label}</span>
-              </NextLink>
-            );
-          }
-          if (item.id === "dashboard") {
-            return (
-              <NextLink key={item.id} href="/groups" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
-                <span>{item.emoji}</span>
-                <span>{item.label}</span>
-              </NextLink>
-            );
-          }
-          if (item.id === "provider") {
-            return (
-              <NextLink key={item.id} href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className={`${styles.navLink}`}>
-                <span>{item.emoji}</span>
-                <span>{item.label}</span>
-              </NextLink>
-            );
-          }
+          // Button links for sections
           return (
             <button
               key={item.id}
