@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import styles from "./page.module.css";
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,6 +121,27 @@ export default function LoginPage() {
           <p className={styles.footerText}>
             New here? <Link href="/co-owner-registration" className={styles.linkAccent}>Sign up</Link>
           </p>
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              onClick={() => {
+                // create or set admin user in localStorage for demo
+                const admin = { id: 'user-admin', username: 'admin', fullName: 'System Admin', email: 'admin@local', role: 'admin', groups: [] };
+                try { localStorage.setItem('currentUser', JSON.stringify(admin)); } catch {}
+                // also create in mock users store if available
+                try {
+                  const usersRaw = localStorage.getItem('mock_users_v1');
+                  let users = usersRaw ? JSON.parse(usersRaw) : [];
+                  const exists = users.find((u:any)=>u.id === admin.id);
+                  if (!exists) { users.push(admin); localStorage.setItem('mock_users_v1', JSON.stringify(users)); }
+                } catch {}
+                router.push('/admin');
+              }}
+              style={{ marginTop: 8 }}
+            >
+              Login as Admin (demo)
+            </button>
+          </div>
         </div>
       </section>
     </main>

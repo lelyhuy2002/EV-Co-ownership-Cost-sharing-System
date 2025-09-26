@@ -15,6 +15,7 @@ export default function RegistrationForm() {
   // Step 1: Account
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"coowner" | "admin">("coowner");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -108,6 +109,7 @@ export default function RegistrationForm() {
         if (data.step) setStep(data.step as StepKey);
         setUsername(data.username ?? "");
         setEmail(data.email ?? "");
+        setRole(data.role ?? "coowner");
         setPassword(data.password ?? "");
         setConfirmPassword(data.confirmPassword ?? "");
         setFullName(data.fullName ?? "");
@@ -126,6 +128,7 @@ export default function RegistrationForm() {
       step,
       username,
       email,
+      role,
       password,
       confirmPassword,
       fullName,
@@ -199,6 +202,7 @@ export default function RegistrationForm() {
     if (!validateCurrentStep()) return;
     const payload = {
       account: { username, email },
+      role,
       personal: { fullName, dob, idNumber },
       car: { licensePlate },
       ownerships,
@@ -211,9 +215,23 @@ export default function RegistrationForm() {
       },
     };
     // TODO: send payload and files to API endpoint
-    // For now, show a success message
+    // For now, save to localStorage as current user (mock backend-less flow)
+    const current = {
+      id: `user-${Math.random().toString(36).slice(2, 9)}`,
+      username,
+      email,
+      fullName,
+      role,
+      groups: [],
+      hasGroups: false
+    };
+    try {
+      localStorage.setItem('currentUser', JSON.stringify(current));
+    } catch {
+      // ignore
+    }
     // eslint-disable-next-line no-alert
-    alert("Đăng ký thành công! (demo)");
+    alert("Đăng ký thành công! (demo) Tài khoản đã được lưu cục bộ.");
     // console.log(payload);
   }
 
@@ -265,6 +283,14 @@ export default function RegistrationForm() {
 
       {step === 1 && (
         <section className={styles.section}>
+          <div className={styles.field}>
+            <label className={styles.label}>Vai trò</label>
+            <select className={styles.input} value={role} onChange={e => setRole(e.target.value as any)}>
+              <option value="coowner">Đồng sở hữu (Co-owner)</option>
+              <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>Chọn vai trò để kích hoạt luồng phù hợp (dành cho demo).</p>
+          </div>
           <div className={styles.field}>
             <label className={styles.label}>Tên đăng nhập</label>
             <input className={styles.input} placeholder="Tên đăng nhập" value={username} onChange={e => setUsername(e.target.value)} />

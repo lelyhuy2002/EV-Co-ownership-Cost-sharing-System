@@ -15,6 +15,7 @@ interface UserProfile {
   email: string;
   groups: UserGroup[];
   hasGroups: boolean;
+  role?: 'admin' | 'coowner' | 'member';
 }
 
 // Mock hook to simulate user authentication and group membership
@@ -39,7 +40,10 @@ export function useUserGroups() {
           email: 'user@example.com',
           groups: [], // Empty groups array simulates new user
           hasGroups: false
-        };
+        ,
+        // For demo we default to coowner; change to 'admin' to simulate admin user
+        role: 'coowner'
+      };
         
         // For demo purposes, you can modify this to simulate different scenarios:
         // - New user (no groups): groups: []
@@ -96,6 +100,7 @@ export function useUserGroups() {
     joinGroup,
     createGroup,
     hasGroups: user?.hasGroups ?? false,
-    isNewUser: user?.groups.length === 0
+    isNewUser: user?.groups.length === 0,
+    isAdmin: user?.role === 'admin'
   };
 }

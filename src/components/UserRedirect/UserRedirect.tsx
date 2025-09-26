@@ -13,7 +13,7 @@ interface UserRedirectProps {
 export default function UserRedirect({ 
   children, 
   redirectPath = '/groups',
-  allowedPaths = ['/groups', '/login', '/register']
+  allowedPaths = ['/groups', '/login', '/register', '/admin']
 }: UserRedirectProps) {
   const { user, loading, isNewUser } = useUserGroups();
   const router = useRouter();

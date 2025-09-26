@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Header from "@/components/Header/Header";
+import { mockApi } from '@/lib/mockApi';
 import { useRouter } from "next/navigation";
 
 // Group List Item Component for List View
@@ -334,8 +335,21 @@ export default function GroupsPage() {
   }, [filteredGroupsToJoin, sortBy]);
 
   // Event handlers
-  const handleJoinGroup = (groupId: string) => {
-    alert(`Đã gửi yêu cầu tham gia nhóm ${groupId}. Admin sẽ xem xét và phản hồi.`);
+  const handleJoinGroup = async (groupId: string) => {
+    // read current user from localStorage (mock)
+    const raw = localStorage.getItem('currentUser');
+    if (!raw) {
+      alert('Vui lòng đăng ký/đăng nhập trước khi tham gia nhóm (demo)');
+      return;
+    }
+    const user = JSON.parse(raw);
+    try {
+      await mockApi.requestJoin(groupId, user.id, user.fullName || user.username, 'Xin tham gia (demo)');
+      alert(`Đã gửi yêu cầu tham gia nhóm ${groupId}. Admin sẽ xem xét và phản hồi.`);
+    } catch (err) {
+      console.error(err);
+      alert('Không thể gửi yêu cầu, thử lại sau');
+    }
   };
 
   const handleViewDetails = (groupId: string) => {

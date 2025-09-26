@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import NextLink from "next/link";
 import styles from "./Header.module.css";
 import { NAVIGATION_ITEMS, COMPANY_INFO } from "@/constants";
+import { useUserGroups } from '@/hooks/useUserGroups';
 
 interface HeaderProps {
   headerHidden: boolean;
@@ -18,13 +19,14 @@ export default function Header({ headerHidden, currentSection, goToSection }: He
         <Image src={COMPANY_INFO.logo} alt={COMPANY_INFO.name} width={140} height={28} className={styles.brand} />
         <span className={`${styles.brandName} gradient-text`}>{COMPANY_INFO.name}</span>
       </div>
-      <HeaderNav currentSection={currentSection} goToSection={goToSection} />
+  <HeaderNav currentSection={currentSection} goToSection={goToSection} />
     </header>
   );
 }
 
 function HeaderNav({ currentSection, goToSection }: { currentSection: number; goToSection?: (index: number) => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAdmin } = useUserGroups();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -65,12 +67,20 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
       </nav>
       
       <div className={styles.headerCtas}>
-        <NextLink href="/login" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
-          Đăng nhập
-        </NextLink>
-        <NextLink href="/co-owner-registration" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>
-          Đăng ký
-        </NextLink>
+        {isAdmin ? (
+          <NextLink href="/admin" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
+            Admin
+          </NextLink>
+        ) : (
+          <>
+            <NextLink href="/login" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
+              Đăng nhập
+            </NextLink>
+            <NextLink href="/co-owner-registration" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>
+              Đăng ký
+            </NextLink>
+          </>
+        )}
       </div>
       
       <button 
