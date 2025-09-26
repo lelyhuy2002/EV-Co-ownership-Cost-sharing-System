@@ -11,7 +11,7 @@ type Group = {
   createdDate: string;
   adminId?: string;
   adminName?: string;
-  status: 'open' | 'full';
+  status: 'open' | 'full' | 'pending' | 'active' | 'rejected';
   icon?: string;
   color?: string;
   rating?: number;
@@ -237,6 +237,29 @@ export const mockApi: any = {
     addLog({ type: 'join.reject', message: `Request ${requestId} rejected`, meta: { requestId } });
     return reqs[idx];
   }
+};
+
+// Package (group) management helpers for admin UI
+mockApi.approvePackage = async (packageId: string) => {
+  const groups = loadGroups();
+  const idx = groups.findIndex(g => g.id === packageId);
+  if (idx === -1) throw new Error('Package not found');
+  groups[idx].status = 'active';
+  // ensure uploadedDate exists
+  if (!groups[idx].createdDate) groups[idx].createdDate = new Date().toLocaleDateString('vi-VN');
+  saveGroups(groups);
+  addLog({ type: 'package.approve', message: `Package ${packageId} approved`, meta: { packageId } });
+  return groups[idx];
+};
+
+mockApi.rejectPackage = async (packageId: string, reason?: string) => {
+  const groups = loadGroups();
+  const idx = groups.findIndex(g => g.id === packageId);
+  if (idx === -1) throw new Error('Package not found');
+  groups[idx].status = 'rejected';
+  saveGroups(groups);
+  addLog({ type: 'package.reject', message: `Package ${packageId} rejected: ${reason || 'no reason'}`, meta: { packageId, reason } });
+  return groups[idx];
 };
 
 // extend mockApi with users and logs
