@@ -1,0 +1,422 @@
+/* Basic styles for upgraded schedule page */
+:root {
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --accent-1: #5b21b6; /* cyber purple */
+  --accent-2: #0ea5e9; /* electric blue */
+  --accent-gradient: linear-gradient(90deg,#5b21b6,#0ea5e9);
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --inuse: #1d4ed8;
+  --muted: #6b7280;
+}
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 28px;
+  align-items: flex-start;
+  background: var(--bg);
+}
+
+.mainArea {
+  flex: 1 1 70%;
+  order: 2; /* ensure main appears to the right when sidebar is left */
+}
+
+.sidebar {
+  flex: 0 0 32%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  order: 1; /* sidebar on the left */
+}
+
+.title {
+  margin: 0 0 12px 0;
+}
+
+.weekGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dayColumn {
+  background: var(--card-bg);
+  border: 1px solid rgba(2,6,23,0.06);
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 220px;
+}
+
+.dayHeader {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.bookingCard {
+  background: linear-gradient(90deg, #ffffff, #fbfbfb);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.bookingCard:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 30px 60px rgba(2,6,23,0.10);
+}
+
+.bookingTop {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+}
+
+.bookingTime {
+  font-weight: 600;
+}
+
+.bookingStatus {
+  font-size: 12px;
+  color: #374151;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(15,23,42,0.04);
+}
+
+.statusConfirmed { background: linear-gradient(90deg,#bbf7d0,#86efac); color: #065f46; }
+.statusInUse { background: linear-gradient(90deg,#fde68a,#fb923c); color: #92400e; }
+.statusBumped { background: linear-gradient(90deg,#fee2e2,#fecaca); color: #991b1b; }
+
+.bookingUser {
+  font-size: 13px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.field {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+}
+
+.primaryBtn {
+  background: #2563eb;
+  color: white;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.secondaryBtn {
+  background: #f3f4f6;
+  color: #111827;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.note {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.usageSection {
+  margin-top: 16px;
+}
+
+.usageTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usageTable th, .usageTable td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.memberListSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.memberRowSidebar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.avatarSmall {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.memberName {
+  font-weight: 600;
+}
+
+.memberPct {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.message {
+  margin-top: 8px;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.memberLegend {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255,255,255,0.7);
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,0.04);
+}
+
+.legendSwatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+
+.bookingActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Tooltip inside booking card */
+.bookingTooltip {
+  position: absolute;
+  background: var(--card-bg);
+  border: 1px solid rgba(2,6,23,0.06);
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #0f172a;
+  z-index: 60;
+  white-space: nowrap;
+  transform: translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.bookingCard:hover .bookingTooltip {
+  opacity: 1;
+  transform: translateY(-14px) translateX(0px);
+  pointer-events: auto;
+}
+
+/* Colors for booked vs in-use filled backgrounds */
+.bookingConfirmedBg { background: linear-gradient(90deg, rgba(16,185,129,0.08), rgba(16,185,129,0.16)); }
+.bookingInUseBg { background: linear-gradient(90deg, rgba(59,130,246,0.08), rgba(59,130,246,0.18)); }
+
+/* flash animation for check-in */
+@keyframes flashInUse {
+  0% { box-shadow: 0 0 0 rgba(29,78,216,0); transform: scale(1); }
+  30% { box-shadow: 0 6px 24px rgba(29,78,216,0.18); transform: scale(1.02); }
+  100% { box-shadow: 0 12px 40px rgba(29,78,216,0.06); transform: scale(1); }
+}
+
+.flashInUse {
+  animation: flashInUse 900ms ease forwards;
+}
+
+.exportBtn {
+  background: transparent;
+  border: 1px dashed rgba(15,23,42,0.08);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px 2px 4px;
+}
+
+.quickActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sidebarCard {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.04);
+}
+
+/* Slide-in panel */
+.slidePanel {
+  position: fixed;
+  right: -520px;
+  top: 0;
+  bottom: 0;
+  width: 480px;
+  background: linear-gradient(180deg, var(--card-bg), #fbfbff);
+  box-shadow: -40px 0 80px rgba(2,6,23,0.08);
+  transition: right 420ms cubic-bezier(.2,.9,.2,1), opacity 300ms ease;
+  z-index: 1200;
+  padding: 20px;
+  border-left: 1px solid rgba(2,6,23,0.04);
+}
+
+.openPanel { right: 0 !important; }
+
+.panelContent { max-width: 420px; margin: 12px 0; }
+
+.spinner { display: inline-block; width: 20px; height: 20px; border-radius: 50%; position: relative; }
+.spinnerDot { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-2); left: 50%; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 -8px 0 var(--accent-1), 8px 0 0 var(--accent-2), 0 8px 0 rgba(14,165,233,0.6); animation: spinDots 900ms linear infinite; }
+@keyframes spinDots { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Button style refinements to match tech palette */
+.primaryBtn { background: var(--accent-gradient); color: white; padding: 10px 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 8px 24px rgba(91,33,182,0.08); }
+.secondaryBtn { background: #fff; border: 1px solid rgba(2,6,23,0.06); padding: 10px 12px; border-radius: 12px; cursor: pointer; font-weight: 700; }
+
+.analysisCard { background: linear-gradient(180deg,#ffffff,#fbfbff); border-radius: 12px; padding: 12px; box-shadow: 0 10px 30px rgba(2,6,23,0.04); }
+
+.chartContainer {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.barLabel { width: 160px; font-weight: 600; }
+.barTrack { flex: 1; background: linear-gradient(90deg, #f1f5f9, #eef2ff); height: 14px; border-radius: 8px; overflow: hidden; }
+.barFill { height: 100%; border-radius: 8px; transition: width 700ms cubic-bezier(.2,.9,.2,1); }
+
+.personalAnalysis {
+  margin-top: 18px;
+  background: linear-gradient(180deg, #ffffff, #fbfbff);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(59,130,246,0.06);
+}
+
+.analysisBar {
+  height: 12px;
+  background: #eef2ff;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.analysisFill {
+  height: 100%;
+  background: linear-gradient(90deg,#3b82f6,#8b5cf6);
+}
+
+.dayBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bookingUser {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+  }
+  .sidebar { flex: none; width: 100%; }
+  .weekGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Modal styles for check-out */
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2,6,23,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalCard {
+  background: white;
+  border-radius: 12px;
+  padding: 18px;
+  width: 420px;
+  box-shadow: 0 20px 60px rgba(2,6,23,0.3);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.smallNote {
+  font-size: 12px;
+  color: #6b7280;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header/Header";
 import styles from "./page.module.css";
 
@@ -48,16 +48,11 @@ const providerData = {
   ]
 };
 
-// Mock data for Co-owner Dashboard
-const coownerData = {
+// Co-owner data (some static, usage fetched from mockApi)
+const coownerStatic = {
   totalGroups: 2,
   totalOwnership: 35,
   monthlyCost: 850000,
-  usageHistory: [
-    { date: "20/01/2025", distance: "45km", cost: 125000, vehicle: "Tesla Model 3" },
-    { date: "19/01/2025", distance: "32km", cost: 89000, vehicle: "Tesla Model 3" },
-    { date: "18/01/2025", distance: "67km", cost: 186000, vehicle: "VinFast VF8" }
-  ],
   groupSummary: [
     { name: "EV Shared Hanoi", ownership: 25, monthlyCost: 450000, usage: "Hàng ngày" },
     { name: "Model 3 Weekend", ownership: 10, monthlyCost: 400000, usage: "Cuối tuần" }
@@ -66,6 +61,20 @@ const coownerData = {
 
 export default function DashboardPage() {
   const [activeDashboard, setActiveDashboard] = useState<DashboardType>("consumer");
+  const [usageHistory, setUsageHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        const uid = raw?.id;
+        if (uid) {
+          const usages = await (await import('@/lib/mockApi')).default.getUsageHistory({ userId: uid });
+          setUsageHistory(usages || []);
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  }, []);
 
   const handleNavClick = (index: number) => {
     // Handle navigation if needed
@@ -224,15 +233,15 @@ export default function DashboardPage() {
         <h2>Tổng quan</h2>
         <div className={styles.statsGrid}>
           <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerData.totalGroups}</div>
+            <div className={styles.statNumber}>{coownerStatic.totalGroups}</div>
             <div className={styles.statLabel}>Nhóm tham gia</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerData.totalOwnership}%</div>
+            <div className={styles.statNumber}>{coownerStatic.totalOwnership}%</div>
             <div className={styles.statLabel}>Tổng tỷ lệ sở hữu</div>
           </div>
           <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerData.monthlyCost.toLocaleString()}đ</div>
+            <div className={styles.statNumber}>{coownerStatic.monthlyCost.toLocaleString()}đ</div>
             <div className={styles.statLabel}>Chi phí tháng này</div>
           </div>
         </div>
@@ -241,14 +250,14 @@ export default function DashboardPage() {
       <div className={styles.usageHistory}>
         <h2>Lịch sử sử dụng</h2>
         <div className={styles.historyList}>
-          {coownerData.usageHistory.map((usage, index) => (
-            <div key={index} className={styles.historyItem}>
-              <div className={styles.historyDate}>{usage.date}</div>
+          {usageHistory.map((usage: any, index: number) => (
+            <div key={usage.id || index} className={styles.historyItem}>
+              <div className={styles.historyDate}>{new Date(usage.ts).toLocaleString()}</div>
               <div className={styles.historyDetails}>
-                <div className={styles.historyVehicle}>{usage.vehicle}</div>
-                <div className={styles.historyDistance}>{usage.distance}</div>
+                <div className={styles.historyVehicle}>{usage.bookingId}</div>
+                <div className={styles.historyDistance}>{usage.usage.distanceKm ?? '—'} km</div>
               </div>
-              <div className={styles.historyCost}>{usage.cost.toLocaleString()}đ</div>
+              <div className={styles.historyCost}>{usage.usage.cost ? usage.usage.cost.toLocaleString() + 'đ' : '—'}</div>
             </div>
           ))}
         </div>
@@ -273,7 +282,7 @@ export default function DashboardPage() {
       <div className={styles.costSummary}>
         <h2>Tổng kết chi phí</h2>
         <div className={styles.costBreakdown}>
-          {coownerData.groupSummary.map((group, index) => (
+          {coownerStatic.groupSummary.map((group: any, index: number) => (
             <div key={index} className={styles.costItem}>
               <div className={styles.costGroupName}>{group.name}</div>
               <div className={styles.costDetails}>
