@@ -47,6 +47,30 @@ export default function RegistrationForm() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const idRegex = /^(\d{9}|\d{12})$/;
 
+  // FE-only helpers and constants
+  const MAX_FILE_SIZE_MB = 5;
+  const IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+  const DOC_TYPES = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
+  function validateFile(file: File | null, allowed: string[], maxMB: number) {
+    if (!file) return "";
+    if (!allowed.includes(file.type)) return "Định dạng tệp không được hỗ trợ";
+    const sizeMB = file.size / (1024 * 1024);
+    if (sizeMB > maxMB) return `Kích thước tối đa ${maxMB}MB`;
+    return "";
+  }
+
+  function normalizePlate(v: string) {
+    return v.toUpperCase().replace(/\s+/g, " ").trim();
+  }
+
+  // Relaxed VN plate validation (kept lenient to avoid blocking legitimate formats)
+  const plateRegex = /^[0-9]{2}[A-Z0-9- ]{1,6}$/;
+
   // Step validity (for disabling Next button)
   const isStepValid = useMemo(() => {
     if (step === 1) {
@@ -336,12 +360,22 @@ export default function RegistrationForm() {
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>Ảnh mặt trước CMND/CCCD</label>
-              <input type="file" accept="image/*" onChange={e => setIdFrontImage(e.target.files?.[0] ?? null)} />
+              <input type="file" accept="image/*" onChange={e => {
+                const f = e.target.files?.[0] ?? null;
+                const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
+                setErrors(prev => ({ ...prev, idFrontImage: msg || "" }));
+                setIdFrontImage(msg ? null : f);
+              }} />
               {errors.idFrontImage && <span className={styles.error}>{errors.idFrontImage}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Ảnh mặt sau CMND/CCCD</label>
-              <input type="file" accept="image/*" onChange={e => setIdBackImage(e.target.files?.[0] ?? null)} />
+              <input type="file" accept="image/*" onChange={e => {
+                const f = e.target.files?.[0] ?? null;
+                const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
+                setErrors(prev => ({ ...prev, idBackImage: msg || "" }));
+                setIdBackImage(msg ? null : f);
+              }} />
               {errors.idBackImage && <span className={styles.error}>{errors.idBackImage}</span>}
             </div>
           </div>
@@ -353,12 +387,22 @@ export default function RegistrationForm() {
           <div className={styles.row}>
             <div className={styles.field}>
               <label className={styles.label}>Giấy phép lái xe</label>
-              <input type="file" accept="image/*,application/pdf" onChange={e => setDriverLicenseImage(e.target.files?.[0] ?? null)} />
+              <input type="file" accept="image/*,application/pdf" onChange={e => {
+                const f = e.target.files?.[0] ?? null;
+                const msg = validateFile(f, [...IMAGE_TYPES, "application/pdf"], MAX_FILE_SIZE_MB);
+                setErrors(prev => ({ ...prev, driverLicenseImage: msg || "" }));
+                setDriverLicenseImage(msg ? null : f);
+              }} />
               {errors.driverLicenseImage && <span className={styles.error}>{errors.driverLicenseImage}</span>}
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Ảnh xe</label>
-              <input type="file" accept="image/*" onChange={e => setVehicleImage(e.target.files?.[0] ?? null)} />
+              <input type="file" accept="image/*" onChange={e => {
+                const f = e.target.files?.[0] ?? null;
+                const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
+                setErrors(prev => ({ ...prev, vehicleImage: msg || "" }));
+                setVehicleImage(msg ? null : f);
+              }} />
               {errors.vehicleImage && <span className={styles.error}>{errors.vehicleImage}</span>}
             </div>
           </div>
@@ -378,7 +422,16 @@ export default function RegistrationForm() {
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Biển số xe</label>
-            <input className={styles.input} placeholder="VD: 30A-123.45" value={licensePlate} onChange={e => setLicensePlate(e.target.value.toUpperCase())} />
+            <input className={styles.input} placeholder="VD: 30A-123.45" value={licensePlate} onChange={e => {
+              const v = normalizePlate(e.target.value);
+              setLicensePlate(v);
+              setErrors(prev => {
+                const next = { ...prev };
+                if (!v.trim() || plateRegex.test(v)) delete next.licensePlate;
+                else next.licensePlate = "Biển số không hợp lệ (vd: 30A-123.45)";
+                return next;
+              });
+            }} />
             {errors.licensePlate && <span className={styles.error}>{errors.licensePlate}</span>}
           </div>
         </section>
@@ -387,9 +440,11 @@ export default function RegistrationForm() {
       {step === 4 && (
         <section className={styles.section}>
           <div className={styles.ownerList}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
               <h3>Quản lý tỷ lệ sở hữu</h3>
-              <span className={styles.badge}>Tổng: {ownerships.reduce((s, o) => s + (Number.isFinite(o.percent) ? o.percent : 0), 0)}%</span>
+              <span className={styles.badge} style={{ background: ownerships.reduce((s,o)=>s+(Number.isFinite(o.percent)?o.percent:0),0)===100 ? '#f1f5f9' : '#fee2e2' }}>
+                Tổng: {ownerships.reduce((s, o) => s + (Number.isFinite(o.percent) ? o.percent : 0), 0)}%
+              </span>
             </div>
             {ownerships.map((o, idx) => (
               <div className={styles.ownerRow} key={idx}>
@@ -401,6 +456,13 @@ export default function RegistrationForm() {
               </div>
             ))}
             <button type="button" className={styles.button} onClick={addOwnerRow}>Thêm đồng sở hữu</button>
+            <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => {
+              if (ownerships.length === 0) return;
+              const each = Math.floor((100 / ownerships.length) * 100) / 100;
+              const rem = Math.round((100 - each * (ownerships.length - 1)) * 100) / 100;
+              setOwnerships(prev => prev.map((o, i) => ({ ...o, percent: i === prev.length - 1 ? rem : each })));
+              setErrors(prev => ({ ...prev, ownerships: "" }));
+            }}>Chia đều 100%</button>
             {errors.ownerships && <span className={styles.error}>{errors.ownerships}</span>}
           </div>
 
@@ -415,20 +477,20 @@ export default function RegistrationForm() {
       {step === 5 && (
         <section className={styles.section}>
           <div className={styles.reviewCard} aria-label="Tóm tắt thông tin đã nhập">
-            <h3>Thông tin tài khoản</h3>
+            <h3>Thông tin tài khoản <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(1 as StepKey)}>Chỉnh sửa</button></h3>
             <div className={styles.reviewGrid}>
               <div className={styles.reviewRow}><span>Tên đăng nhập</span><strong>{username}</strong></div>
               <div className={styles.reviewRow}><span>Email</span><strong>{email}</strong></div>
             </div>
 
-            <h3 style={{ marginTop: 12 }}>Thông tin cá nhân</h3>
+            <h3 style={{ marginTop: 12 }}>Thông tin cá nhân <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(2 as StepKey)}>Chỉnh sửa</button></h3>
             <div className={styles.reviewGrid}>
               <div className={styles.reviewRow}><span>Họ tên</span><strong>{fullName}</strong></div>
               <div className={styles.reviewRow}><span>Ngày sinh</span><strong>{dob}</strong></div>
               <div className={styles.reviewRow}><span>CMND/CCCD</span><strong>{idNumber}</strong></div>
             </div>
 
-            <h3 style={{ marginTop: 12 }}>Xe & pháp lý</h3>
+            <h3 style={{ marginTop: 12 }}>Xe & pháp lý <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(3 as StepKey)}>Chỉnh sửa</button></h3>
             <div className={styles.reviewGrid}>
               <div className={styles.reviewRow}><span>Biển số</span><strong>{licensePlate}</strong></div>
               <div className={styles.reviewRow}><span>GPLX</span><strong>{driverLicenseImage ? driverLicenseImage.name : "(chưa tải)"}</strong></div>
@@ -456,6 +518,18 @@ export default function RegistrationForm() {
 
       <div className={styles.actions}>
         <button type="button" className={`${styles.button} ${styles.outline}`} onClick={goBack} disabled={step === 1}>Quay về</button>
+        <button type="button" className={styles.button} onClick={() => {
+          setUsername(""); setEmail(""); setRole("coowner");
+          setPassword(""); setConfirmPassword("");
+          setFullName(""); setDob(""); setIdNumber("");
+          setIdFrontImage(null); setIdBackImage(null);
+          setDriverLicenseImage(null); setVehicleImage(null);
+          setDriverLicensePreview(null); setVehiclePreview(null);
+          setLicensePlate(""); setOwnerships([{ coOwnerName: "", percent: 0 }]);
+          setEContractFile(null); setErrors({});
+          setStep(1 as StepKey);
+          try { localStorage.removeItem("registrationForm"); } catch {}
+        }}>Làm lại</button>
         {step < 5 && (
           <button
             type="button"

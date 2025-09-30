@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Header from "@/components/Header/Header";
 import { mockApi } from '@/lib/mockApi';
+import { GROUPS_TO_JOIN, MY_GROUPS, type GroupToJoin, type MyGroup } from '@/lib/groupsData';
 import { useRouter } from "next/navigation";
 
 // Group List Item Component for List View
@@ -95,146 +96,17 @@ function GroupListItem({ group, onJoin, onViewDetails }: {
 
 // GroupCard component removed - using list view only for better UX
 
-interface MyGroup {
-  id: string;
-  name: string;
-  myOwnershipPct: number;
-  memberCount: number;
-  description: string;
-  icon: string;
-  color: string;
-  rating: number;
-  reviewCount: number;
-  monthlyCost: number;
-  vehicleType: string;
-}
+// types moved to lib/groupsData
 
 // DiscoverGroup interface removed - consolidated functionality
 
-interface GroupToJoin {
-  id: string;
-  vehicleName: string;
-  vehicleModel: string;
-  currentMembers: number;
-  maxMembers: number;
-  ownershipAvailable: number;
-  region: string;
-  purpose: string;
-  createdDate: string;
-  adminName: string;
-  status: "open" | "full";
-  icon: string;
-  color: string;
-  rating: number;
-  reviewCount: number;
-  priceRange: string;
-}
+// types moved to lib/groupsData
 
-const MY_GROUPS: MyGroup[] = [
-  { 
-    id: "grp-01", 
-    name: "EV Shared Hanoi", 
-    myOwnershipPct: 25, 
-    memberCount: 4, 
-    description: "Nhóm chia sẻ VF8 cho nhu cầu đi lại hằng ngày.",
-    icon: "🚗",
-    color: "blue",
-    rating: 4.8,
-    reviewCount: 24,
-    monthlyCost: 450000,
-    vehicleType: "VinFast VF8"
-  },
-  { 
-    id: "grp-02", 
-    name: "Model 3 Weekend", 
-    myOwnershipPct: 10, 
-    memberCount: 8, 
-    description: "Cộng đồng sử dụng Tesla Model 3 cho cuối tuần.",
-    icon: "⚡",
-    color: "green",
-    rating: 4.9,
-    reviewCount: 36,
-    monthlyCost: 400000,
-    vehicleType: "Tesla Model 3"
-  },
-];
+// data moved to lib/groupsData
 
 // DISCOVER_GROUPS removed - consolidated into GROUPS_TO_JOIN for better UX
 
-const GROUPS_TO_JOIN: GroupToJoin[] = [
-  {
-    id: "grp-join-01",
-    vehicleName: "Tesla Model 3",
-    vehicleModel: "Standard Range Plus",
-    currentMembers: 3,
-    maxMembers: 5,
-    ownershipAvailable: 40,
-    region: "Hà Nội",
-    purpose: "Đi lại hàng ngày",
-    createdDate: "15/01/2025",
-    adminName: "Nguyễn Văn A",
-    status: "open",
-    icon: "⚡",
-    color: "blue",
-    rating: 4.8,
-    reviewCount: 32,
-    priceRange: "2-3M VND"
-  },
-  {
-    id: "grp-join-02", 
-    vehicleName: "VinFast VF8",
-    vehicleModel: "Eco",
-    currentMembers: 2,
-    maxMembers: 4,
-    ownershipAvailable: 50,
-    region: "TP.HCM",
-    purpose: "Du lịch cuối tuần",
-    createdDate: "20/01/2025",
-    adminName: "Trần Thị B",
-    status: "open",
-    icon: "🚗",
-    color: "green",
-    rating: 4.6,
-    reviewCount: 28,
-    priceRange: "1.5-2.5M VND"
-  },
-  {
-    id: "grp-join-03",
-    vehicleName: "BYD Atto 3",
-    vehicleModel: "Comfort",
-    currentMembers: 4,
-    maxMembers: 4,
-    ownershipAvailable: 0,
-    region: "Đà Nẵng", 
-    purpose: "Công việc",
-    createdDate: "10/01/2025",
-    adminName: "Lê Văn C",
-    status: "full",
-    icon: "🔋",
-    color: "orange",
-    rating: 4.7,
-    reviewCount: 19,
-    priceRange: "1-2M VND"
-  },
-  {
-    id: "grp-join-04",
-    vehicleName: "Tesla Model Y",
-    vehicleModel: "Long Range",
-    currentMembers: 1,
-    maxMembers: 6,
-    ownershipAvailable: 83,
-    region: "Hà Nội",
-    purpose: "Gia đình",
-    createdDate: "25/01/2025", 
-    adminName: "Phạm Thị D",
-    status: "open",
-    icon: "⚡",
-    color: "purple",
-    rating: 4.9,
-    reviewCount: 41,
-    priceRange: "3-4M VND"
-  }
-];
+// data moved to lib/groupsData
 
 export default function GroupsPage() {
   const [activeTab, setActiveTab] = useState<"mine" | "discover" | "requests">("mine");
@@ -353,7 +225,8 @@ export default function GroupsPage() {
   };
 
   const handleViewDetails = (groupId: string) => {
-    router.push(`/groups/${groupId}/details`);
+    // For vehicle details, route to /vehicles/[id]
+    router.push(`/vehicles/${groupId}`);
   };
 
   return (
