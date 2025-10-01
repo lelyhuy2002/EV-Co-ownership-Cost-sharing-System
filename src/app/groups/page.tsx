@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Header from "@/components/Header/Header";
 import { mockApi } from '@/lib/mockApi';
@@ -9,10 +9,11 @@ import { GROUPS_TO_JOIN, MY_GROUPS, type GroupToJoin, type MyGroup } from '@/lib
 import { useRouter } from "next/navigation";
 
 // Group List Item Component for List View
-function GroupListItem({ group, onJoin, onViewDetails }: { 
+function GroupListItem({ group, onJoin, onViewDetails, isRequested }: { 
   group: GroupToJoin; 
   onJoin: (id: string) => void; 
   onViewDetails: (id: string) => void; 
+  isRequested?: boolean;
 }) {
   return (
     <article className={`${styles.listItem} ${styles[group.color]}`}>
@@ -79,9 +80,9 @@ function GroupListItem({ group, onJoin, onViewDetails }: {
         <button
           className={styles.primaryActionBtn}
           onClick={() => onJoin(group.id)}
-          disabled={group.status === "full"}
+          disabled={group.status === "full" || isRequested}
         >
-          {group.status === "full" ? "Đã đầy" : "Tham gia ngay"}
+          {group.status === "full" ? "Đã đầy" : isRequested ? "Đã gửi yêu cầu" : "Tham gia ngay"}
         </button>
         <button
           className={styles.secondaryActionBtn}
@@ -117,10 +118,28 @@ export default function GroupsPage() {
   const [vehicleFilter, setVehicleFilter] = useState("");
   const [priceRange, setPriceRange] = useState([0, 5000000]);
   const [showAIRecommendations, setShowAIRecommendations] = useState(false);
+  const [myRequests, setMyRequests] = useState<any[]>([]);
   // Removed viewMode state - using list view only
   const [sortBy, setSortBy] = useState("newest");
   const [showFullGroups, setShowFullGroups] = useState(false);
   const router = useRouter();
+  // Poll my join requests to fill Requests tab
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      try {
+        const raw = localStorage.getItem('currentUser');
+        if (!raw) { setMyRequests([]); return; }
+        const user = JSON.parse(raw);
+        const reqs = await mockApi.getJoinRequests();
+        if (!alive) return;
+        setMyRequests(reqs.filter((r:any)=> r.userId === user.id).sort((a:any,b:any)=> new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime()));
+      } catch {}
+    }
+    load();
+    const t = setInterval(load, 2000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   // AI Recommendations based on user behavior
   const aiRecommendations = [
@@ -468,7 +487,7 @@ export default function GroupsPage() {
                 </div>
                 <div className={styles.groupsList}>
                   {openGroups.map(group => (
-                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} />
+                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} isRequested={myRequests.some((r:any)=> r.groupId===group.id && r.status==='pending')} />
                   ))}
                 </div>
               </div>
@@ -483,7 +502,7 @@ export default function GroupsPage() {
                 </div>
                 <div className={styles.groupsList}>
                   {fullGroups.map(group => (
-                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} />
+                    <GroupListItem key={group.id} group={group} onJoin={handleJoinGroup} onViewDetails={handleViewDetails} isRequested={myRequests.some((r:any)=> r.groupId===group.id && r.status==='pending')} />
                   ))}
                 </div>
               </div>
@@ -510,93 +529,39 @@ export default function GroupsPage() {
           </div>
 
           <div className={styles.requestsGrid}>
-            {/* Mock data for join requests */}
-            <article className={styles.requestCard}>
-              <div className={styles.requestHeader}>
-                <div className={styles.groupIcon}>⚡</div>
-                <div className={styles.requestInfo}>
-                  <h3>Tesla Model 3 - Hà Nội</h3>
-                  <div className={styles.requestMeta}>
-                    <span className={styles.status}>⏳ Đang chờ duyệt</span>
-                    <span className={styles.date}>Gửi ngày: 25/01/2025</span>
+            {myRequests.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>📝</div>
+                <h3>Chưa có yêu cầu nào</h3>
+                <p>Hãy duyệt các nhóm và gửi yêu cầu tham gia.</p>
+                <button className={styles.primaryBtn} onClick={() => setActiveTab("discover")}>Khám phá nhóm</button>
+              </div>
+            ) : (
+              myRequests.map((r:any) => (
+                <article key={r.id} className={styles.requestCard}>
+                  <div className={styles.requestHeader}>
+                    <div className={styles.groupIcon}>👥</div>
+                    <div className={styles.requestInfo}>
+                      <h3>Yêu cầu vào nhóm {r.groupId}</h3>
+                      <div className={styles.requestMeta}>
+                        <span className={`${styles.status} ${r.status === 'pending' ? '' : r.status === 'approved' ? styles.approved : styles.rejected}`}>
+                          {r.status === 'pending' ? '⏳ Đang chờ duyệt' : r.status === 'approved' ? '✅ Đã chấp nhận' : '❌ Từ chối'}
+                        </span>
+                        <span className={styles.date}>Gửi: {new Date(r.createdAt).toLocaleString('vi-VN')}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className={styles.requestDetails}>
-                <div className={styles.detailRow}>
-                  <span>Admin:</span>
-                  <span>Nguyễn Văn A</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <span>Lời nhắn:</span>
-                  <span>&quot;Tôi muốn tham gia nhóm để sử dụng xe cuối tuần&quot;</span>
-                </div>
-              </div>
-
-              <div className={styles.requestActions}>
-                <button className={styles.cancelBtn}>Hủy yêu cầu</button>
-                <button className={styles.contactBtn}>Liên hệ Admin</button>
-              </div>
-            </article>
-
-            <article className={styles.requestCard}>
-              <div className={styles.requestHeader}>
-                <div className={styles.groupIcon}>🚗</div>
-                <div className={styles.requestInfo}>
-                  <h3>VinFast VF8 - TP.HCM</h3>
-                  <div className={styles.requestMeta}>
-                    <span className={`${styles.status} ${styles.approved}`}>✅ Đã chấp nhận</span>
-                    <span className={styles.date}>Duyệt ngày: 24/01/2025</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.requestDetails}>
-                <div className={styles.detailRow}>
-                  <span>Admin:</span>
-                  <span>Trần Thị B</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <span>Lời nhắn:</span>
-                  <span>&quot;Cảm ơn bạn đã chấp nhận! Hãy cùng nhau chia sẻ xe.&quot;</span>
-                </div>
-              </div>
-
-              <div className={styles.requestActions}>
-                <button className={styles.primaryBtn}>Xem nhóm</button>
-                <button className={styles.secondaryBtn}>Đánh giá</button>
-              </div>
-            </article>
-
-            <article className={styles.requestCard}>
-              <div className={styles.requestHeader}>
-                <div className={styles.groupIcon}>🔋</div>
-                <div className={styles.requestInfo}>
-                  <h3>BYD Atto 3 - Đà Nẵng</h3>
-                  <div className={styles.requestMeta}>
-                    <span className={`${styles.status} ${styles.rejected}`}>❌ Từ chối</span>
-                    <span className={styles.date}>Phản hồi ngày: 23/01/2025</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className={styles.requestDetails}>
-                <div className={styles.detailRow}>
-                  <span>Admin:</span>
-                  <span>Lê Văn C</span>
-                </div>
-                <div className={styles.detailRow}>
-                  <span>Lý do từ chối:</span>
-                  <span>&quot;Nhóm đã đủ thành viên, xin lỗi vì sự bất tiện này.&quot;</span>
-                </div>
-              </div>
-
-              <div className={styles.requestActions}>
-                <button className={styles.primaryBtn}>Tìm nhóm khác</button>
-                <button className={styles.secondaryBtn}>Gửi phản hồi</button>
-              </div>
-            </article>
+                  {r.message && (
+                    <div className={styles.requestDetails}>
+                      <div className={styles.detailRow}>
+                        <span>Lời nhắn:</span>
+                        <span>{r.message}</span>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              ))
+            )}
           </div>
 
           {false && ( /* Show when no requests */
