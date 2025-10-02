@@ -10,7 +10,14 @@ type Booking = {
   id: string;
   groupId: string;
   userId: string;
-  slot: { date: string; start: string; end?: string; notes?: string };
+  slot: { 
+    date: string; 
+    start: string; 
+    end?: string; 
+    endDate?: string;
+    endTimeExpected?: string;
+    notes?: string 
+  };
   status: string;
   createdAt: string;
 };
@@ -22,6 +29,8 @@ export default function GroupSchedulePage() {
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
+  const [endDate, setEndDate] = useState('');
+  const [endTimeExpected, setEndTimeExpected] = useState('10:00');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [usages, setUsages] = useState<any[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -85,6 +94,13 @@ export default function GroupSchedulePage() {
 
   const getMember = (id: string) => members.find(m => m.id === id) || { id, name: id, percent: 0, color: '#9ca3af' };
 
+  // Tính toán số ngày tối đa được đặt dựa trên % sở hữu
+  const getMaxBookingDays = (ownershipPercent: number) => {
+    // Công thức: % sở hữu * 30 ngày (tối đa 1 tháng)
+    // Tối thiểu 1 ngày, tối đa 30 ngày
+    return Math.max(1, Math.min(30, Math.round(ownershipPercent * 0.3)));
+  };
+
   const toMinutes = (t: string) => {
     const [hh, mm] = t.split(':').map(Number);
     return hh * 60 + mm;
@@ -96,8 +112,36 @@ export default function GroupSchedulePage() {
 
   const handleCreateBooking = async () => {
     setMessage(null);
-    if (!date) { setMessage('Vui lòng chọn ngày.'); return; }
+    if (!date) { setMessage('Vui lòng chọn ngày bắt đầu.'); return; }
+    if (!endDate) { setMessage('Vui lòng chọn ngày kết thúc dự kiến.'); return; }
     if (!endTime) { setMessage('Vui lòng chọn giờ kết thúc.'); return; }
+    if (!endTimeExpected) { setMessage('Vui lòng chọn giờ kết thúc dự kiến.'); return; }
+    
+    // Kiểm tra ngày bắt đầu không được trong quá khứ
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(date);
+    if (startDate < today) {
+      setMessage('Ngày bắt đầu không được trong quá khứ.');
+      return;
+    }
+    
+    // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
+    const endDateObj = new Date(endDate);
+    if (endDateObj < startDate) {
+      setMessage('Ngày kết thúc phải sau ngày bắt đầu.');
+      return;
+    }
+    
+    // Kiểm tra số ngày đặt không vượt quá giới hạn
+    const bookingUserId = newUserId || currentUserId;
+    const currentMember = members.find(m => m.id === bookingUserId) || { percent: 0 };
+    const maxDays = getMaxBookingDays(currentMember.percent);
+    const daysDiff = Math.ceil((endDateObj.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    if (daysDiff > maxDays) {
+      setMessage(`Bạn chỉ được đặt tối đa ${maxDays} ngày (dựa trên ${currentMember.percent}% sở hữu).`);
+      return;
+    }
     // AI priority check animation
     setAiChecking(true);
     try {
@@ -122,9 +166,15 @@ export default function GroupSchedulePage() {
       // small extra wait to make the AI-check feel real
       await new Promise(r => setTimeout(r, 550));
   const bookingUserId = newUserId || currentUserId;
-  const booking = await mockApi.createBooking(groupId, bookingUserId, { date, start: startTime, end: endTime });
+  const booking = await mockApi.createBooking(groupId, bookingUserId, { 
+    date, 
+    start: startTime, 
+    end: endTime,
+    endDate: endDate,
+    endTimeExpected: endTimeExpected
+  });
       setBookings(prev => [...prev, booking as Booking]);
-      setDate(''); setStartTime('09:00'); setEndTime('10:00');
+      setDate(''); setStartTime('09:00'); setEndTime('10:00'); setEndDate(''); setEndTimeExpected('10:00');
       setPanelOpen(false);
       setMessage('Đặt thành công.');
     } catch (err) {
@@ -135,58 +185,6 @@ export default function GroupSchedulePage() {
     }
   };
 
-  const handleCheckIn = async (bookingId: string) => {
-    try {
-      await mockApi.updateBookingStatus(bookingId, 'in-use');
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'in-use' } : b));
-      const activeKey = `mock_active_usage_${currentUserId}_${groupId}`;
-      const payload = { bookingId, startTs: new Date().toISOString(), recordedBy: currentUserId };
-      localStorage.setItem(activeKey, JSON.stringify(payload));
-      // visual flash
-      const el = document.getElementById('booking-' + bookingId);
-      if (el) {
-        el.classList.add(styles.flashInUse);
-        setTimeout(() => el.classList.remove(styles.flashInUse), 1200);
-      }
-      setMessage('Check-in thành công.');
-    } catch (e) {
-      setMessage('Check-in thất bại.');
-    }
-  };
-
-  // Checkout modal state
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [checkoutBookingId, setCheckoutBookingId] = useState<string | null>(null);
-  const [checkoutDistance, setCheckoutDistance] = useState<string>('');
-  const [checkoutDuration, setCheckoutDuration] = useState<string>('');
-  const [checkoutCost, setCheckoutCost] = useState<string>('');
-
-  const openCheckoutModal = (bookingId: string) => {
-    setCheckoutBookingId(bookingId);
-    setCheckoutDistance(''); setCheckoutDuration(''); setCheckoutCost('');
-    setCheckoutModalOpen(true);
-  };
-  const closeCheckoutModal = () => { setCheckoutModalOpen(false); setCheckoutBookingId(null); };
-
-  const handleConfirmCheckout = async () => {
-    if (!checkoutBookingId) return;
-    if (!checkoutDistance || !checkoutDuration) { setMessage('Vui lòng nhập quãng đường và thời lượng.'); return; }
-    const distanceNum = Number(checkoutDistance);
-    const durationNum = Number(checkoutDuration);
-    const costNum = checkoutCost ? Number(checkoutCost) : undefined;
-    try {
-      const entry = await mockApi.recordUsage(checkoutBookingId, { distanceKm: distanceNum, durationMin: durationNum, cost: costNum, recordedBy: currentUserId });
-      await mockApi.updateBookingStatus(checkoutBookingId, 'completed');
-      setBookings(prev => prev.map(b => b.id === checkoutBookingId ? { ...b, status: 'completed' } : b));
-      setUsages(prev => [...prev, entry]);
-      const activeKey = `mock_active_usage_${currentUserId}_${groupId}`;
-      localStorage.removeItem(activeKey);
-      setMessage('Check-out thành công và ghi nhận sử dụng.');
-      closeCheckoutModal();
-    } catch (e) {
-      setMessage('Check-out thất bại.');
-    }
-  };
 
   // Personal analysis: compute user's total duration vs group total (simple aggregation)
   const personalAnalysis = useMemo(() => {
@@ -236,18 +234,17 @@ export default function GroupSchedulePage() {
                       <div id={'booking-' + b.id} key={b.id} className={styles.bookingCard + ' ' + styles[bgClass]} style={{ borderLeft: `6px solid ${mem.color || '#6b7280'}`, position: 'relative' }}>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                           <div className={styles.bookingTop}>
-                            <div className={styles.bookingTime}>{b.slot.start}{b.slot.end ? ` - ${b.slot.end}` : ''}</div>
+                            <div className={styles.bookingTime}>
+                              {b.slot.start}{b.slot.end ? ` - ${b.slot.end}` : ''}
+                              {b.slot.endDate && (
+                                <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                                  Đến: {new Date(b.slot.endDate).toLocaleDateString('vi-VN')} {b.slot.endTimeExpected}
+                                </div>
+                              )}
+                            </div>
                             <div className={`${styles.bookingStatus} ${statusClass}`}>{b.status}</div>
                           </div>
                           <div className={styles.bookingUser} style={{ color: mem.color }}>{mem.name}</div>
-                        </div>
-                        <div className={styles.bookingActions}>
-                          {b.userId === currentUserId && b.status === 'confirmed' && (
-                            <button className={styles.primaryBtn} onClick={() => handleCheckIn(b.id)}>Check-in</button>
-                          )}
-                          {b.userId === currentUserId && b.status === 'in-use' && (
-                            <button className={styles.primaryBtn} onClick={() => openCheckoutModal(b.id)}>Check-out</button>
-                          )}
                         </div>
 
                         <div className={styles.bookingTooltip} style={{ right: 12 }}>
@@ -298,19 +295,42 @@ export default function GroupSchedulePage() {
           <div className={styles.card}>
             <h3>Đặt xe</h3>
             <div className={styles.field}>
-              <label>Chọn ngày</label>
-              <input className={styles.input} type="date" value={date} onChange={e => setDate(e.target.value)} />
+              <label>Ngày bắt đầu</label>
+              <input 
+                className={styles.input} 
+                type="date" 
+                value={date} 
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setDate(e.target.value)} 
+              />
             </div>
             <div className={styles.field}>
               <label>Giờ bắt đầu</label>
               <input className={styles.input} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
             </div>
             <div className={styles.field}>
-              <label>Giờ kết thúc</label>
+              <label>Ngày kết thúc dự kiến</label>
+              <input 
+                className={styles.input} 
+                type="date" 
+                value={endDate} 
+                min={date || new Date().toISOString().split('T')[0]}
+                onChange={e => setEndDate(e.target.value)} 
+              />
+            </div>
+            <div className={styles.field}>
+              <label>Giờ kết thúc dự kiến</label>
+              <input className={styles.input} type="time" value={endTimeExpected} onChange={e => setEndTimeExpected(e.target.value)} />
+            </div>
+            <div className={styles.field}>
+              <label>Giờ kết thúc thực tế</label>
               <input className={styles.input} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
             </div>
             <div className={styles.field}>
-              <small className={styles.note}>Lưu ý: Quyền ưu tiên có thể áp dụng dựa trên tỷ lệ sở hữu của bạn.</small>
+              <small className={styles.note}>
+                Lưu ý: Quyền ưu tiên có thể áp dụng dựa trên tỷ lệ sở hữu của bạn. 
+                Số ngày tối đa được đặt: {getMaxBookingDays((members.find(m => m.id === currentUserId)?.percent) || 0)} ngày.
+              </small>
             </div>
             <button className={styles.primaryBtn} onClick={handleCreateBooking}>Đặt ngay</button>
             {message && <div className={styles.message}>{message}</div>}
@@ -327,30 +347,6 @@ export default function GroupSchedulePage() {
             </div>
           </div>
 
-          <div className={styles.card}>
-            <h3>Check-in / Check-out</h3>
-            <div className={styles.field}>
-              <label>Đặt chỗ của bạn (hiện tại)</label>
-              <select className={styles.input} onChange={() => {}}>
-                <option value="">-- Chọn đặt chỗ --</option>
-                {bookings.filter(b => b.userId === currentUserId).map(b => (
-                  <option key={b.id} value={b.id}>{b.slot.date} {b.slot.start} — {b.status}</option>
-                ))}
-              </select>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className={styles.secondaryBtn} onClick={() => {
-                const b = bookings.find(b => b.userId === currentUserId && b.status === 'confirmed');
-                if (!b) return alert('Bạn không có đặt chỗ xác nhận để check-in (demo)');
-                handleCheckIn(b.id);
-              }}>Check-in</button>
-              <button className={styles.secondaryBtn} onClick={() => {
-                const b = bookings.find(b => b.userId === currentUserId && b.status === 'in-use');
-                if (!b) return alert('Không có phiên đang sử dụng để check-out');
-                openCheckoutModal(b.id);
-              }}>Check-out</button>
-            </div>
-          </div>
 
           <div className={styles.card}>
             <h3>Thành viên & Tỷ lệ</h3>
@@ -388,17 +384,36 @@ export default function GroupSchedulePage() {
           <div className={styles.panelContent}>
             <h3>Đặt Lịch Mới</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label>Chọn ngày</label>
-              <input className={styles.input} type="date" value={date} onChange={e => setDate(e.target.value)} />
+              <label>Ngày bắt đầu</label>
+              <input 
+                className={styles.input} 
+                type="date" 
+                value={date} 
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setDate(e.target.value)} 
+              />
               <label>Giờ bắt đầu</label>
               <input className={styles.input} type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-              <label>Giờ kết thúc</label>
+              <label>Ngày kết thúc dự kiến</label>
+              <input 
+                className={styles.input} 
+                type="date" 
+                value={endDate} 
+                min={date || new Date().toISOString().split('T')[0]}
+                onChange={e => setEndDate(e.target.value)} 
+              />
+              <label>Giờ kết thúc dự kiến</label>
+              <input className={styles.input} type="time" value={endTimeExpected} onChange={e => setEndTimeExpected(e.target.value)} />
+              <label>Giờ kết thúc thực tế</label>
               <input className={styles.input} type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
               <label>Người dùng</label>
               <select className={styles.input} value={newUserId} onChange={e => setNewUserId(e.target.value)}>
                 <option value="">(Bạn)</option>
                 {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
+              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                Số ngày tối đa được đặt: {getMaxBookingDays((members.find(m => m.id === (newUserId || currentUserId))?.percent) || 0)} ngày
+              </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className={styles.primaryBtn} onClick={handleCreateBooking} disabled={aiChecking}>
                   {aiChecking ? <span className={styles.spinner}><span className={styles.spinnerDot}></span></span> : 'Xác nhận'}
@@ -410,28 +425,6 @@ export default function GroupSchedulePage() {
           </div>
         </div>
 
-      {checkoutModalOpen && (
-        <div className={styles.modalBackdrop} role="dialog" aria-modal="true">
-          <div className={styles.modalCard}>
-            <div className={styles.modalHeader}>
-              <h3>Check-out và ghi nhận sử dụng</h3>
-              <button className={styles.secondaryBtn} onClick={closeCheckoutModal}>✕</button>
-            </div>
-            <div className={styles.modalBody}>
-              <label className={styles.smallNote}>Quãng đường (km)</label>
-              <input className={styles.input} type="number" value={checkoutDistance} onChange={e => setCheckoutDistance(e.target.value)} />
-              <label className={styles.smallNote}>Thời lượng (phút)</label>
-              <input className={styles.input} type="number" value={checkoutDuration} onChange={e => setCheckoutDuration(e.target.value)} />
-              <label className={styles.smallNote}>Chi phí (VND) — tùy chọn</label>
-              <input className={styles.input} type="number" value={checkoutCost} onChange={e => setCheckoutCost(e.target.value)} />
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button className={styles.primaryBtn} onClick={handleConfirmCheckout}>Xác nhận</button>
-                <button className={styles.secondaryBtn} onClick={closeCheckoutModal}>Hủy</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
