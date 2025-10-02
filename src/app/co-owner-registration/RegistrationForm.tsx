@@ -7,7 +7,7 @@ type OwnershipEntry = {
   percent: number;
 };
 
-type StepKey = 1 | 2 | 3 | 4 | 5;
+type StepKey = 1 | 2 | 3 | 4;
 
 export default function RegistrationForm() {
   const [step, setStep] = useState<StepKey>(1);
@@ -15,7 +15,7 @@ export default function RegistrationForm() {
   // Step 1: Account
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"coowner" | "admin">("coowner");
+  const [role, setRole] = useState<"co_owner" | "admin">("co_owner");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -23,6 +23,7 @@ export default function RegistrationForm() {
   const [fullName, setFullName] = useState("");
   const [dob, setDob] = useState("");
   const [idNumber, setIdNumber] = useState("");
+  const [driverLicense, setDriverLicense] = useState("");
   const [idFrontImage, setIdFrontImage] = useState<File | null>(null);
   const [idBackImage, setIdBackImage] = useState<File | null>(null);
 
@@ -33,15 +34,13 @@ export default function RegistrationForm() {
   const [vehiclePreview, setVehiclePreview] = useState<string | null>(null);
   const [licensePlate, setLicensePlate] = useState("");
 
-  // Step 4: Co-ownership & e-contract (optional)
-  const [ownerships, setOwnerships] = useState<OwnershipEntry[]>([{ coOwnerName: "", percent: 0 }]);
-  const [eContractFile, setEContractFile] = useState<File | null>(null);
+  // Step 4 removed: ownership & e-contract
 
   // Errors (simple real-time validation)
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const progressPercent = useMemo(() => {
-    return Math.round(((step - 1) / 4) * 100);
+    return Math.round(((step - 1) / 3) * 100);
   }, [step]);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,36 +73,26 @@ export default function RegistrationForm() {
   // Step validity (for disabling Next button)
   const isStepValid = useMemo(() => {
     if (step === 1) {
+      // Username is optional for DB; only require email and password
       return (
-        username.trim().length > 0 &&
         emailRegex.test(email) &&
         password.length >= 6 &&
         confirmPassword === password
       );
     }
     if (step === 2) {
-      return (
-        fullName.trim().length > 0 &&
-        !!dob &&
-        idRegex.test(idNumber) &&
-        !!idFrontImage &&
-        !!idBackImage
-      );
+      // Only require full name and birthday (DB: full_name, birthday). CCCD and driver_license are optional.
+      return fullName.trim().length > 0 && !!dob;
     }
     if (step === 3) {
-      return !!driverLicenseImage && !!vehicleImage && licensePlate.trim().length > 0;
+      // Make step 3 optional (no hard requirements for images/vehicle in Users schema)
+      return true;
     }
     if (step === 4) {
-      // Optional step; valid if empty or totals to 100 and fields filled
-      const total = ownerships.reduce((sum, o) => sum + (Number.isFinite(o.percent) ? o.percent : 0), 0);
-      const hasAnyName = ownerships.some(o => o.coOwnerName.trim());
-      const hasAnyPercent = ownerships.some(o => o.percent > 0);
-      if (!hasAnyName && !hasAnyPercent) return true;
-      if (total !== 100) return false;
-      return ownerships.every(o => o.coOwnerName.trim() && o.percent >= 0 && o.percent <= 100);
+      return true;
     }
     return true;
-  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, idFrontImage, idBackImage, driverLicenseImage, vehicleImage, licensePlate, ownerships]);
+  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, idFrontImage, idBackImage, driverLicenseImage, vehicleImage, licensePlate]);
 
   // Image previews for step 3
   useEffect(() => {
@@ -133,14 +122,14 @@ export default function RegistrationForm() {
         if (data.step) setStep(data.step as StepKey);
         setUsername(data.username ?? "");
         setEmail(data.email ?? "");
-        setRole(data.role ?? "coowner");
+        setRole(data.role ?? "co_owner");
         setPassword(data.password ?? "");
         setConfirmPassword(data.confirmPassword ?? "");
         setFullName(data.fullName ?? "");
         setDob(data.dob ?? "");
         setIdNumber(data.idNumber ?? "");
+        setDriverLicense(data.driverLicense ?? "");
         setLicensePlate(data.licensePlate ?? "");
-        setOwnerships(Array.isArray(data.ownerships) ? data.ownerships : [{ coOwnerName: "", percent: 0 }]);
       } catch {
         // ignore
       }
@@ -158,17 +147,16 @@ export default function RegistrationForm() {
       fullName,
       dob,
       idNumber,
+      driverLicense,
       licensePlate,
-      ownerships,
     };
     localStorage.setItem("registrationForm", JSON.stringify(toSave));
-  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, licensePlate, ownerships]);
+  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, driverLicense, licensePlate]);
 
   function validateCurrentStep(): boolean {
     const nextErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!username.trim()) nextErrors.username = "Vui lòng nhập tên đăng nhập";
       if (!emailRegex.test(email)) nextErrors.email = "Email không hợp lệ";
       if (password.length < 6) nextErrors.password = "Mật khẩu tối thiểu 6 ký tự";
       if (confirmPassword !== password) nextErrors.confirmPassword = "Mật khẩu không khớp";
@@ -177,9 +165,8 @@ export default function RegistrationForm() {
     if (step === 2) {
       if (!fullName.trim()) nextErrors.fullName = "Vui lòng nhập họ tên";
       if (!dob) nextErrors.dob = "Vui lòng nhập ngày sinh";
-      if (!idRegex.test(idNumber)) nextErrors.idNumber = "CMND/CCCD phải 9 hoặc 12 số";
-      if (!idFrontImage) nextErrors.idFrontImage = "Tải ảnh CMND/CCCD mặt trước";
-      if (!idBackImage) nextErrors.idBackImage = "Tải ảnh CMND/CCCD mặt sau";
+      // CCCD (idNumber) and driver_license are optional per DB, but if provided, validate CCCD format
+      if (idNumber && !idRegex.test(idNumber)) nextErrors.idNumber = "CMND/CCCD phải 9 hoặc 12 số";
     }
 
     if (step === 3) {
@@ -188,20 +175,7 @@ export default function RegistrationForm() {
       if (!licensePlate.trim()) nextErrors.licensePlate = "Nhập biển số xe";
     }
 
-    if (step === 4) {
-      // Optional step but validate if filled
-      const total = ownerships.reduce((sum, o) => sum + (Number.isFinite(o.percent) ? o.percent : 0), 0);
-      const hasAnyName = ownerships.some(o => o.coOwnerName.trim());
-      const hasAnyPercent = ownerships.some(o => o.percent > 0);
-      if (hasAnyName || hasAnyPercent) {
-        if (total !== 100) nextErrors.ownerships = "Tổng tỷ lệ sở hữu phải bằng 100%";
-        ownerships.forEach((o, idx) => {
-          if (!o.coOwnerName.trim()) nextErrors[`owner_${idx}_name`] = "Nhập tên đồng sở hữu";
-          if (o.percent < 0 || o.percent > 100) nextErrors[`owner_${idx}_percent`] = "0-100";
-        });
-      }
-      // eContract is optional; no strict validation here
-    }
+    // No step 4 validation needed
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -210,7 +184,7 @@ export default function RegistrationForm() {
   function goNext() {
     if (!validateCurrentStep()) return;
     setStep(prev => {
-      const nextStep = Math.min(5, prev + 1);
+      const nextStep = Math.min(4, prev + 1);
       return nextStep as StepKey;
     });
   }
@@ -225,17 +199,16 @@ export default function RegistrationForm() {
   function handleSubmit() {
     if (!validateCurrentStep()) return;
     const payload = {
-      account: { username, email },
-      role,
-      personal: { fullName, dob, idNumber },
-      car: { licensePlate },
-      ownerships,
-      attachments: {
-        idFrontImage: idFrontImage?.name,
-        idBackImage: idBackImage?.name,
-        driverLicenseImage: driverLicenseImage?.name,
-        vehicleImage: vehicleImage?.name,
-        eContractFile: eContractFile?.name,
+      // Align with Users DB table
+      user: {
+        full_name: fullName,
+        email,
+        password_hash: password, // NOTE: hash on server side
+        cccd: idNumber || null,
+        driver_license: driverLicense || null,
+        birthday: dob || null,
+        role: role,
+        verification_status: 'unverified',
       },
     };
     // TODO: send payload and files to API endpoint
@@ -264,7 +237,7 @@ export default function RegistrationForm() {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter") {
         e.preventDefault();
-        if (step < 5) {
+        if (step < 4) {
           if (isStepValid) goNext();
         } else {
           handleSubmit();
@@ -278,56 +251,42 @@ export default function RegistrationForm() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [step, isStepValid]);
 
-  function updateOwnershipName(index: number, name: string) {
-    setOwnerships(prev => prev.map((o, i) => (i === index ? { ...o, coOwnerName: name } : o)));
-  }
-
-  function updateOwnershipPercent(index: number, percent: number) {
-    setOwnerships(prev => prev.map((o, i) => (i === index ? { ...o, percent: Number.isNaN(percent) ? 0 : percent } : o)));
-  }
-
-  function addOwnerRow() {
-    setOwnerships(prev => [...prev, { coOwnerName: "", percent: 0 }]);
-  }
-
-  function removeOwnerRow(index: number) {
-    setOwnerships(prev => prev.filter((_, i) => i !== index));
-  }
+  // Ownership handlers removed
 
   return (
     <div className={styles.container}>
       <div className={styles.formCard} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
       <div className={styles.header}>
         <h1>Đăng ký</h1>
-        <span className={styles.badge}>Bước {step}/5 — {step === 1 ? "Thông tin tài khoản" : step === 2 ? "Thông tin cá nhân" : step === 3 ? "Xe & pháp lý" : step === 4 ? "Đồng sở hữu & hợp đồng" : "Xác nhận"}</span>
+        <span className={styles.badge}>Bước {step}/4 — {step === 1 ? "Thông tin tài khoản" : step === 2 ? "Thông tin cá nhân" : step === 3 ? "Xe & pháp lý" : "Xác nhận"}</span>
         <div className={styles.progressBar}>
           <div className={styles.progressInner} style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
 
       {step === 1 && (
-        <section className={styles.section}>
+        <section className={styles.section} aria-label="Xác nhận thông tin">
           <div className={styles.field}>
             <label className={styles.label}>Vai trò</label>
             <select className={styles.input} value={role} onChange={e => setRole(e.target.value as any)}>
-              <option value="coowner">Đồng sở hữu (Co-owner)</option>
+              <option value="co_owner">Đồng sở hữu (Co-owner)</option>
               <option value="admin">Quản trị viên (Admin)</option>
             </select>
-            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>Chọn vai trò để kích hoạt luồng phù hợp (dành cho demo).</p>
+            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>Mặc định: Đồng sở hữu. (DB: 'co_owner' | 'admin')</p>
           </div>
+          {/* Username is not in Users DB schema, keep optional or remove from validation */}
           <div className={styles.field}>
-            <label className={styles.label}>Tên đăng nhập</label>
+            <label className={styles.label}>Tên đăng nhập (tùy chọn)</label>
             <input className={styles.input} placeholder="Tên đăng nhập" value={username} onChange={e => setUsername(e.target.value)} />
-            {errors.username && <span className={styles.error}>{errors.username}</span>}
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Gmail</label>
+            <label className={styles.label}>Email</label>
             <input className={styles.input} placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} />
             {errors.email && <span className={styles.error}>{errors.email}</span>}
           </div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Mật khẩu</label>
+              <label className={styles.label}>Mật khẩu (sẽ được băm ở backend)</label>
               <input type="password" className={styles.input} placeholder="••••••" value={password} onChange={e => setPassword(e.target.value)} />
               {errors.password && <span className={styles.error}>{errors.password}</span>}
             </div>
@@ -353,13 +312,17 @@ export default function RegistrationForm() {
             {errors.dob && <span className={styles.error}>{errors.dob}</span>}
           </div>
           <div className={styles.field}>
-            <label className={styles.label}>Số CMND/CCCD</label>
+            <label className={styles.label}>Số CMND/CCCD (tùy chọn)</label>
             <input className={styles.input} placeholder="9 hoặc 12 số" value={idNumber} onChange={e => setIdNumber(e.target.value)} />
             {errors.idNumber && <span className={styles.error}>{errors.idNumber}</span>}
           </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Số giấy phép lái xe (tùy chọn)</label>
+            <input className={styles.input} placeholder="VD: 79-123456789" value={driverLicense} onChange={e => setDriverLicense(e.target.value)} />
+          </div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Ảnh mặt trước CMND/CCCD</label>
+              <label className={styles.label}>Ảnh mặt trước CMND/CCCD (tùy chọn)</label>
               <input type="file" accept="image/*" onChange={e => {
                 const f = e.target.files?.[0] ?? null;
                 const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
@@ -369,7 +332,7 @@ export default function RegistrationForm() {
               {errors.idFrontImage && <span className={styles.error}>{errors.idFrontImage}</span>}
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>Ảnh mặt sau CMND/CCCD</label>
+              <label className={styles.label}>Ảnh mặt sau CMND/CCCD (tùy chọn)</label>
               <input type="file" accept="image/*" onChange={e => {
                 const f = e.target.files?.[0] ?? null;
                 const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
@@ -437,57 +400,24 @@ export default function RegistrationForm() {
         </section>
       )}
 
+      {/* Ownership step removed */}
+
       {step === 4 && (
-        <section className={styles.section}>
-          <div className={styles.ownerList}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-              <h3>Quản lý tỷ lệ sở hữu</h3>
-              <span className={styles.badge} style={{ background: ownerships.reduce((s,o)=>s+(Number.isFinite(o.percent)?o.percent:0),0)===100 ? '#f1f5f9' : '#fee2e2' }}>
-                Tổng: {ownerships.reduce((s, o) => s + (Number.isFinite(o.percent) ? o.percent : 0), 0)}%
-              </span>
-            </div>
-            {ownerships.map((o, idx) => (
-              <div className={styles.ownerRow} key={idx}>
-                <input className={styles.input} placeholder="Tên đồng sở hữu" value={o.coOwnerName} onChange={e => updateOwnershipName(idx, e.target.value)} />
-                <input className={styles.input} type="number" min={0} max={100} placeholder="%" value={Number.isFinite(o.percent) ? o.percent : 0} onChange={e => updateOwnershipPercent(idx, parseFloat(e.target.value))} />
-                <button type="button" className={styles.button} onClick={() => removeOwnerRow(idx)}>Xóa</button>
-                {errors[`owner_${idx}_name`] && <span className={styles.error}>{errors[`owner_${idx}_name`]}</span>}
-                {errors[`owner_${idx}_percent`] && <span className={styles.error}>{errors[`owner_${idx}_percent`]}</span>}
-              </div>
-            ))}
-            <button type="button" className={styles.button} onClick={addOwnerRow}>Thêm đồng sở hữu</button>
-            <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => {
-              if (ownerships.length === 0) return;
-              const each = Math.floor((100 / ownerships.length) * 100) / 100;
-              const rem = Math.round((100 - each * (ownerships.length - 1)) * 100) / 100;
-              setOwnerships(prev => prev.map((o, i) => ({ ...o, percent: i === prev.length - 1 ? rem : each })));
-              setErrors(prev => ({ ...prev, ownerships: "" }));
-            }}>Chia đều 100%</button>
-            {errors.ownerships && <span className={styles.error}>{errors.ownerships}</span>}
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Hợp đồng đồng sở hữu (PDF/DOC/Ảnh)</label>
-            <input type="file" accept=".pdf,.doc,.docx,image/*" onChange={e => setEContractFile(e.target.files?.[0] ?? null)} />
-            {eContractFile && <span className={styles.badge}>{eContractFile.name}</span>}
-          </div>
-        </section>
-      )}
-
-      {step === 5 && (
         <section className={styles.section}>
           <div className={styles.reviewCard} aria-label="Tóm tắt thông tin đã nhập">
             <h3>Thông tin tài khoản <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(1 as StepKey)}>Chỉnh sửa</button></h3>
             <div className={styles.reviewGrid}>
               <div className={styles.reviewRow}><span>Tên đăng nhập</span><strong>{username}</strong></div>
               <div className={styles.reviewRow}><span>Email</span><strong>{email}</strong></div>
+              <div className={styles.reviewRow}><span>Vai trò</span><strong>{role}</strong></div>
             </div>
 
             <h3 style={{ marginTop: 12 }}>Thông tin cá nhân <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(2 as StepKey)}>Chỉnh sửa</button></h3>
             <div className={styles.reviewGrid}>
               <div className={styles.reviewRow}><span>Họ tên</span><strong>{fullName}</strong></div>
               <div className={styles.reviewRow}><span>Ngày sinh</span><strong>{dob}</strong></div>
-              <div className={styles.reviewRow}><span>CMND/CCCD</span><strong>{idNumber}</strong></div>
+              <div className={styles.reviewRow}><span>CMND/CCCD</span><strong>{idNumber || '(không cung cấp)'}</strong></div>
+              <div className={styles.reviewRow}><span>GPLX</span><strong>{driverLicense || '(không cung cấp)'}</strong></div>
             </div>
 
             <h3 style={{ marginTop: 12 }}>Xe & pháp lý <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(3 as StepKey)}>Chỉnh sửa</button></h3>
@@ -497,21 +427,7 @@ export default function RegistrationForm() {
               <div className={styles.reviewRow}><span>Ảnh xe</span><strong>{vehicleImage ? vehicleImage.name : "(chưa tải)"}</strong></div>
             </div>
 
-            <h3 style={{ marginTop: 12 }}>Đồng sở hữu</h3>
-            {ownerships.length > 0 && (
-              <div className={styles.ownerList}>
-                {ownerships.map((o, idx) => (
-                  <div className={styles.reviewRow} key={idx}>
-                    <span>{o.coOwnerName || "(chưa đặt tên)"}</span>
-                    <strong>{Number.isFinite(o.percent) ? o.percent : 0}%</strong>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className={styles.reviewRow} style={{ marginTop: 8 }}>
-              <span>Hợp đồng</span>
-              <strong>{eContractFile ? eContractFile.name : "(không có)"}</strong>
-            </div>
+            {/* Ownership details removed */}
           </div>
         </section>
       )}
@@ -519,18 +435,18 @@ export default function RegistrationForm() {
       <div className={styles.actions}>
         <button type="button" className={`${styles.button} ${styles.outline}`} onClick={goBack} disabled={step === 1}>Quay về</button>
         <button type="button" className={styles.button} onClick={() => {
-          setUsername(""); setEmail(""); setRole("coowner");
+          setUsername(""); setEmail(""); setRole("co_owner");
           setPassword(""); setConfirmPassword("");
           setFullName(""); setDob(""); setIdNumber("");
           setIdFrontImage(null); setIdBackImage(null);
           setDriverLicenseImage(null); setVehicleImage(null);
           setDriverLicensePreview(null); setVehiclePreview(null);
-          setLicensePlate(""); setOwnerships([{ coOwnerName: "", percent: 0 }]);
-          setEContractFile(null); setErrors({});
+          setLicensePlate("");
+          setErrors({});
           setStep(1 as StepKey);
           try { localStorage.removeItem("registrationForm"); } catch {}
         }}>Làm lại</button>
-        {step < 5 && (
+        {step < 4 && (
           <button
             type="button"
             className={`${styles.button} ${styles.primary}`}
@@ -542,7 +458,7 @@ export default function RegistrationForm() {
             Tiếp tục
           </button>
         )}
-        {step === 5 && (
+        {step === 4 && (
           <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit}>Đăng ký</button>
         )}
       </div>
