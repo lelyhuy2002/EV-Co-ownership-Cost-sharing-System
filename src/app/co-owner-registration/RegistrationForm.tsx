@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./Registration.module.css";
 
 type OwnershipEntry = {
@@ -7,9 +8,10 @@ type OwnershipEntry = {
   percent: number;
 };
 
-type StepKey = 1 | 2 | 3 | 4;
+type StepKey = 1 | 2 | 3;
 
 export default function RegistrationForm() {
+  const router = useRouter();
   const [step, setStep] = useState<StepKey>(1);
 
   // Step 1: Account
@@ -27,12 +29,9 @@ export default function RegistrationForm() {
   const [idFrontImage, setIdFrontImage] = useState<File | null>(null);
   const [idBackImage, setIdBackImage] = useState<File | null>(null);
 
-  // Step 3: Car & Legal
+// GPLX upload (moved into step 2)
   const [driverLicenseImage, setDriverLicenseImage] = useState<File | null>(null);
-  const [vehicleImage, setVehicleImage] = useState<File | null>(null);
   const [driverLicensePreview, setDriverLicensePreview] = useState<string | null>(null);
-  const [vehiclePreview, setVehiclePreview] = useState<string | null>(null);
-  const [licensePlate, setLicensePlate] = useState("");
 
   // Step 4 removed: ownership & e-contract
 
@@ -40,11 +39,33 @@ export default function RegistrationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const progressPercent = useMemo(() => {
-    return Math.round(((step - 1) / 3) * 100);
+    return Math.round(((step - 1) / 2) * 100);
   }, [step]);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const idRegex = /^(\d{9}|\d{12})$/;
+
+  // Age constraints
+  const MIN_AGE_YEARS = 18;
+  function calculateAgeYears(dateStr: string): number {
+    if (!dateStr) return 0;
+    const dobDate = new Date(dateStr);
+    const today = new Date();
+    let age = today.getFullYear() - dobDate.getFullYear();
+    const m = today.getMonth() - dobDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+      age--;
+    }
+    return age;
+  }
+  function dateYearsAgo(years: number): string {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - years);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
   // FE-only helpers and constants
   const MAX_FILE_SIZE_MB = 5;
@@ -63,12 +84,7 @@ export default function RegistrationForm() {
     return "";
   }
 
-  function normalizePlate(v: string) {
-    return v.toUpperCase().replace(/\s+/g, " ").trim();
-  }
-
-  // Relaxed VN plate validation (kept lenient to avoid blocking legitimate formats)
-  const plateRegex = /^[0-9]{2}[A-Z0-9- ]{1,6}$/;
+  // removed plate handling (no step for vehicle)
 
   // Step validity (for disabling Next button)
   const isStepValid = useMemo(() => {
@@ -81,18 +97,14 @@ export default function RegistrationForm() {
       );
     }
     if (step === 2) {
-      // Only require full name and birthday (DB: full_name, birthday). CCCD and driver_license are optional.
-      return fullName.trim().length > 0 && !!dob;
+      // Only require full name and birthday and ensure age >= 18. CCCD and driver_license are optional.
+      return fullName.trim().length > 0 && !!dob && calculateAgeYears(dob) >= MIN_AGE_YEARS;
     }
     if (step === 3) {
-      // Make step 3 optional (no hard requirements for images/vehicle in Users schema)
-      return true;
-    }
-    if (step === 4) {
       return true;
     }
     return true;
-  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, idFrontImage, idBackImage, driverLicenseImage, vehicleImage, licensePlate]);
+  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, idFrontImage, idBackImage, driverLicenseImage]);
 
   // Image previews for step 3
   useEffect(() => {
@@ -104,14 +116,7 @@ export default function RegistrationForm() {
     setDriverLicensePreview(null);
   }, [driverLicenseImage]);
 
-  useEffect(() => {
-    if (vehicleImage) {
-      const url = URL.createObjectURL(vehicleImage);
-      setVehiclePreview(url);
-      return () => URL.revokeObjectURL(url);
-    }
-    setVehiclePreview(null);
-  }, [vehicleImage]);
+  // removed vehicle preview effect
 
   // Autosave to localStorage (except File objects)
   useEffect(() => {
@@ -119,10 +124,10 @@ export default function RegistrationForm() {
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (data.step) setStep(data.step as StepKey);
+        if (data.step) setStep(Math.min(3, data.step) as StepKey);
         setUsername(data.username ?? "");
         setEmail(data.email ?? "");
-        setRole(data.role ?? "co_owner");
+        setRole("co_owner");
         setPassword(data.password ?? "");
         setConfirmPassword(data.confirmPassword ?? "");
         setFullName(data.fullName ?? "");
@@ -141,17 +146,17 @@ export default function RegistrationForm() {
       step,
       username,
       email,
-      role,
+      role: "co_owner",
       password,
       confirmPassword,
       fullName,
       dob,
       idNumber,
       driverLicense,
-      licensePlate,
+      
     };
     localStorage.setItem("registrationForm", JSON.stringify(toSave));
-  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, driverLicense, licensePlate]);
+  }, [step, username, email, password, confirmPassword, fullName, dob, idNumber, driverLicense]);
 
   function validateCurrentStep(): boolean {
     const nextErrors: Record<string, string> = {};
@@ -165,17 +170,12 @@ export default function RegistrationForm() {
     if (step === 2) {
       if (!fullName.trim()) nextErrors.fullName = "Vui lòng nhập họ tên";
       if (!dob) nextErrors.dob = "Vui lòng nhập ngày sinh";
+      else if (calculateAgeYears(dob) < MIN_AGE_YEARS) nextErrors.dob = `Bạn phải từ ${MIN_AGE_YEARS} tuổi trở lên`;
       // CCCD (idNumber) and driver_license are optional per DB, but if provided, validate CCCD format
       if (idNumber && !idRegex.test(idNumber)) nextErrors.idNumber = "CMND/CCCD phải 9 hoặc 12 số";
     }
 
-    if (step === 3) {
-      if (!driverLicenseImage) nextErrors.driverLicenseImage = "Tải ảnh giấy phép lái xe";
-      if (!vehicleImage) nextErrors.vehicleImage = "Tải ảnh xe";
-      if (!licensePlate.trim()) nextErrors.licensePlate = "Nhập biển số xe";
-    }
-
-    // No step 4 validation needed
+    // No step 3 validation needed (review)
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -184,7 +184,7 @@ export default function RegistrationForm() {
   function goNext() {
     if (!validateCurrentStep()) return;
     setStep(prev => {
-      const nextStep = Math.min(4, prev + 1);
+      const nextStep = Math.min(3, prev + 1);
       return nextStep as StepKey;
     });
   }
@@ -207,7 +207,7 @@ export default function RegistrationForm() {
         cccd: idNumber || null,
         driver_license: driverLicense || null,
         birthday: dob || null,
-        role: role,
+        role: "co_owner",
         verification_status: 'unverified',
       },
     };
@@ -218,7 +218,7 @@ export default function RegistrationForm() {
       username,
       email,
       fullName,
-      role,
+      role: "co_owner",
       groups: [],
       hasGroups: false
     };
@@ -227,9 +227,8 @@ export default function RegistrationForm() {
     } catch {
       // ignore
     }
-    // eslint-disable-next-line no-alert
-    alert("Đăng ký thành công! (demo) Tài khoản đã được lưu cục bộ.");
-    // console.log(payload);
+    // Redirect to login page after successful registration
+    router.push('/login');
   }
 
   // Keyboard shortcuts: Enter -> next/submit, Escape -> back
@@ -237,7 +236,7 @@ export default function RegistrationForm() {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter") {
         e.preventDefault();
-        if (step < 4) {
+        if (step < 3) {
           if (isStepValid) goNext();
         } else {
           handleSubmit();
@@ -258,7 +257,7 @@ export default function RegistrationForm() {
       <div className={styles.formCard} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
       <div className={styles.header}>
         <h1>Đăng ký</h1>
-        <span className={styles.badge}>Bước {step}/4 — {step === 1 ? "Thông tin tài khoản" : step === 2 ? "Thông tin cá nhân" : step === 3 ? "Xe & pháp lý" : "Xác nhận"}</span>
+        <span className={styles.badge}>Bước {step}/3 — {step === 1 ? "Thông tin tài khoản" : step === 2 ? "Thông tin cá nhân" : "Xác nhận"}</span>
         <div className={styles.progressBar}>
           <div className={styles.progressInner} style={{ width: `${progressPercent}%` }} />
         </div>
@@ -266,14 +265,7 @@ export default function RegistrationForm() {
 
       {step === 1 && (
         <section className={styles.section} aria-label="Xác nhận thông tin">
-          <div className={styles.field}>
-            <label className={styles.label}>Vai trò</label>
-            <select className={styles.input} value={role} onChange={e => setRole(e.target.value as any)}>
-              <option value="co_owner">Đồng sở hữu (Co-owner)</option>
-              <option value="admin">Quản trị viên (Admin)</option>
-            </select>
-            <p style={{ color: '#6b7280', fontSize: 12, marginTop: 6 }}>Mặc định: Đồng sở hữu. (DB: 'co_owner' | 'admin')</p>
-          </div>
+          {/** Vai trò mặc định là 'co_owner' và không hiển thị trên UI */}
           {/* Username is not in Users DB schema, keep optional or remove from validation */}
           <div className={styles.field}>
             <label className={styles.label}>Tên đăng nhập (tùy chọn)</label>
@@ -308,7 +300,22 @@ export default function RegistrationForm() {
           </div>
           <div className={styles.field}>
             <label className={styles.label}>Ngày sinh</label>
-            <input type="date" className={styles.input} value={dob} onChange={e => setDob(e.target.value)} />
+            <input
+              type="date"
+              className={styles.input}
+              value={dob}
+              onChange={e => {
+                const v = e.target.value;
+                setDob(v);
+                setErrors(prev => {
+                  const next = { ...prev };
+                  if (!v) next.dob = "Vui lòng nhập ngày sinh";
+                  else if (calculateAgeYears(v) < MIN_AGE_YEARS) next.dob = `Bạn phải từ ${MIN_AGE_YEARS} tuổi trở lên`;
+                  else delete next.dob;
+                  return next;
+                });
+              }}
+            />
             {errors.dob && <span className={styles.error}>{errors.dob}</span>}
           </div>
           <div className={styles.field}>
@@ -342,92 +349,83 @@ export default function RegistrationForm() {
               {errors.idBackImage && <span className={styles.error}>{errors.idBackImage}</span>}
             </div>
           </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Giấy phép lái xe</label>
+            <input type="file" accept="image/*,application/pdf" onChange={e => {
+              const f = e.target.files?.[0] ?? null;
+              const msg = validateFile(f, [...IMAGE_TYPES, "application/pdf"], MAX_FILE_SIZE_MB);
+              setErrors(prev => ({ ...prev, driverLicenseImage: msg || "" }));
+              setDriverLicenseImage(msg ? null : f);
+            }} />
+            {errors.driverLicenseImage && <span className={styles.error}>{errors.driverLicenseImage}</span>}
+          </div>
+          {driverLicensePreview && (
+            <div className={styles.preview}>
+              <strong>GPLX</strong>
+              <img src={driverLicensePreview} alt="Xem trước giấy phép lái xe" />
+            </div>
+          )}
         </section>
       )}
 
-      {step === 3 && (
-        <section className={styles.section}>
-          <div className={styles.row}>
-            <div className={styles.field}>
-              <label className={styles.label}>Giấy phép lái xe</label>
-              <input type="file" accept="image/*,application/pdf" onChange={e => {
-                const f = e.target.files?.[0] ?? null;
-                const msg = validateFile(f, [...IMAGE_TYPES, "application/pdf"], MAX_FILE_SIZE_MB);
-                setErrors(prev => ({ ...prev, driverLicenseImage: msg || "" }));
-                setDriverLicenseImage(msg ? null : f);
-              }} />
-              {errors.driverLicenseImage && <span className={styles.error}>{errors.driverLicenseImage}</span>}
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Ảnh xe</label>
-              <input type="file" accept="image/*" onChange={e => {
-                const f = e.target.files?.[0] ?? null;
-                const msg = validateFile(f, IMAGE_TYPES, MAX_FILE_SIZE_MB);
-                setErrors(prev => ({ ...prev, vehicleImage: msg || "" }));
-                setVehicleImage(msg ? null : f);
-              }} />
-              {errors.vehicleImage && <span className={styles.error}>{errors.vehicleImage}</span>}
-            </div>
-          </div>
-          <div className={styles.previewGrid} aria-live="polite">
-            {driverLicensePreview && (
-              <div className={styles.preview}>
-                <strong>GPLX</strong>
-                <img src={driverLicensePreview} alt="Xem trước giấy phép lái xe" />
-              </div>
-            )}
-            {vehiclePreview && (
-              <div className={styles.preview}>
-                <strong>Ảnh xe</strong>
-                <img src={vehiclePreview} alt="Xem trước ảnh xe" />
-              </div>
-            )}
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Biển số xe</label>
-            <input className={styles.input} placeholder="VD: 30A-123.45" value={licensePlate} onChange={e => {
-              const v = normalizePlate(e.target.value);
-              setLicensePlate(v);
-              setErrors(prev => {
-                const next = { ...prev };
-                if (!v.trim() || plateRegex.test(v)) delete next.licensePlate;
-                else next.licensePlate = "Biển số không hợp lệ (vd: 30A-123.45)";
-                return next;
-              });
-            }} />
-            {errors.licensePlate && <span className={styles.error}>{errors.licensePlate}</span>}
-          </div>
-        </section>
-      )}
+      
 
       {/* Ownership step removed */}
 
-      {step === 4 && (
+      {step === 3 && (
         <section className={styles.section}>
           <div className={styles.reviewCard} aria-label="Tóm tắt thông tin đã nhập">
-            <h3>Thông tin tài khoản <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(1 as StepKey)}>Chỉnh sửa</button></h3>
-            <div className={styles.reviewGrid}>
-              <div className={styles.reviewRow}><span>Tên đăng nhập</span><strong>{username}</strong></div>
-              <div className={styles.reviewRow}><span>Email</span><strong>{email}</strong></div>
-              <div className={styles.reviewRow}><span>Vai trò</span><strong>{role}</strong></div>
+            <div className={styles.reviewSection}>
+              <div className={styles.reviewSectionHeader}>
+                <h3 className={styles.reviewSectionTitle}>Thông tin tài khoản</h3>
+                <button type="button" className={styles.editButton} onClick={() => setStep(1 as StepKey)}>
+                  <span className={styles.editIcon}>✎</span>
+                  Chỉnh sửa
+                </button>
+              </div>
+              <div className={styles.reviewGrid}>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Tên đăng nhập</span>
+                  <span className={styles.reviewValue}>{username || '(không cung cấp)'}</span>
+                </div>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Email</span>
+                  <span className={styles.reviewValue}>{email}</span>
+                </div>
+              </div>
             </div>
 
-            <h3 style={{ marginTop: 12 }}>Thông tin cá nhân <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(2 as StepKey)}>Chỉnh sửa</button></h3>
-            <div className={styles.reviewGrid}>
-              <div className={styles.reviewRow}><span>Họ tên</span><strong>{fullName}</strong></div>
-              <div className={styles.reviewRow}><span>Ngày sinh</span><strong>{dob}</strong></div>
-              <div className={styles.reviewRow}><span>CMND/CCCD</span><strong>{idNumber || '(không cung cấp)'}</strong></div>
-              <div className={styles.reviewRow}><span>GPLX</span><strong>{driverLicense || '(không cung cấp)'}</strong></div>
+            <div className={styles.reviewSection}>
+              <div className={styles.reviewSectionHeader}>
+                <h3 className={styles.reviewSectionTitle}>Thông tin cá nhân</h3>
+                <button type="button" className={styles.editButton} onClick={() => setStep(2 as StepKey)}>
+                  <span className={styles.editIcon}>✎</span>
+                  Chỉnh sửa
+                </button>
+              </div>
+              <div className={styles.reviewGrid}>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Họ tên</span>
+                  <span className={styles.reviewValue}>{fullName}</span>
+                </div>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Ngày sinh</span>
+                  <span className={styles.reviewValue}>{dob}</span>
+                </div>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>CMND/CCCD</span>
+                  <span className={styles.reviewValue}>{idNumber || '(không cung cấp)'}</span>
+                </div>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Số GPLX</span>
+                  <span className={styles.reviewValue}>{driverLicense || '(không cung cấp)'}</span>
+                </div>
+                <div className={styles.reviewRow}>
+                  <span className={styles.reviewLabel}>Giấy phép lái xe</span>
+                  <span className={styles.reviewValue}>{driverLicenseImage ? driverLicenseImage.name : "(chưa tải)"}</span>
+                </div>
+              </div>
             </div>
-
-            <h3 style={{ marginTop: 12 }}>Xe & pháp lý <button type="button" className={`${styles.button} ${styles.outline}`} onClick={() => setStep(3 as StepKey)}>Chỉnh sửa</button></h3>
-            <div className={styles.reviewGrid}>
-              <div className={styles.reviewRow}><span>Biển số</span><strong>{licensePlate}</strong></div>
-              <div className={styles.reviewRow}><span>GPLX</span><strong>{driverLicenseImage ? driverLicenseImage.name : "(chưa tải)"}</strong></div>
-              <div className={styles.reviewRow}><span>Ảnh xe</span><strong>{vehicleImage ? vehicleImage.name : "(chưa tải)"}</strong></div>
-            </div>
-
-            {/* Ownership details removed */}
           </div>
         </section>
       )}
@@ -446,7 +444,7 @@ export default function RegistrationForm() {
           setStep(1 as StepKey);
           try { localStorage.removeItem("registrationForm"); } catch {}
         }}>Làm lại</button>
-        {step < 4 && (
+        {step < 3 && (
           <button
             type="button"
             className={`${styles.button} ${styles.primary}`}
@@ -458,7 +456,7 @@ export default function RegistrationForm() {
             Tiếp tục
           </button>
         )}
-        {step === 4 && (
+        {step === 3 && (
           <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit}>Đăng ký</button>
         )}
       </div>

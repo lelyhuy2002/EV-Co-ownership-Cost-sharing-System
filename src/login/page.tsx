@@ -56,6 +56,18 @@ export default function LoginPage() {
       </section>
       <section className={styles.formPane}>
         <div className={styles.formCard}>
+          <button 
+            type="button" 
+            className={styles.homeButton}
+            onClick={() => router.push('/home')}
+            title="Trở về trang chủ"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="9,22 9,12 15,12 15,22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Trang chủ</span>
+          </button>
           <h2 className={styles.title}>Log in</h2>
           <form onSubmit={handleSubmit} className={styles.form}>
             <label className={styles.inputRow}>

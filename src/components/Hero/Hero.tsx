@@ -14,11 +14,12 @@ export default function Hero() {
         <div className={styles.heroContent}>
           <ScrollAnimation animation="slideRight" delay={0}>
             <div className={styles.heroText}>
-              <h1 className={`${styles.heroTitle} gradient-text`}>Nâng tầm phân tích dữ liệu cho ngành xe điện</h1>
+              <h1 className={`${styles.heroTitle} gradient-text`}>EV Share: Hệ Thống Đồng Sở Hữu & Chia Sẻ Chi Phí Xe Điện Tiên Phong</h1>
               <ul className={styles.heroChecklist}>
-                <li>Phân tích nhanh, chính xác, tương thích với mọi hệ thống.</li>
-                <li>Kho dữ liệu rộng khắp: sạc, hành trình, hiệu suất pin.</li>
-                <li>Quy trình minh bạch, bảo mật và ẩn danh tuyệt đối.</li>
+                <li>Chia sẻ chi phí sạc, bảo dưỡng minh bạch, tự động. 🔋</li>
+                <li>Quản lý lịch trình sử dụng chung xe trực quan, không xung đột. 📅</li>
+                <li>Theo dõi chi phí và lợi ích của từng chủ sở hữu theo thời gian thực. 💰</li>
+                <li>Hợp đồng đồng sở hữu số hóa, bảo mật và dễ dàng cập nhật. 📜</li>
               </ul>
               <div className={styles.ctas}>
                 <a href="#marketplace" className={`${styles.button} ${styles.primary} hover-lift focus-ring`}>Trải nghiệm ngay</a>
