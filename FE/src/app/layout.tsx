@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 };
 
 import UserRedirect from "@/components/UserRedirect/UserRedirect";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout({
   children,
@@ -36,9 +37,11 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body>
-        <UserRedirect>
-          {children}
-        </UserRedirect>
+        <AuthProvider>
+          <UserRedirect>
+            {children}
+          </UserRedirect>
+        </AuthProvider>
       </body>
     </html>
   );

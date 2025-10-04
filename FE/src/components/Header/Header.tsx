@@ -5,6 +5,8 @@ import NextLink from "next/link";
 import styles from "./Header.module.css";
 import { NAVIGATION_ITEMS, COMPANY_INFO } from "@/constants";
 import { useUserGroups } from '@/hooks/useUserGroups';
+import { useAuth } from '@/contexts/AuthContext';
+import UserProfile from '@/components/UserProfile/UserProfile';
 
 interface HeaderProps {
   headerHidden: boolean;
@@ -27,6 +29,7 @@ export default function Header({ headerHidden, currentSection, goToSection }: He
 function HeaderNav({ currentSection, goToSection }: { currentSection: number; goToSection?: (index: number) => void }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAdmin } = useUserGroups();
+  const { isAuthenticated } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -67,10 +70,8 @@ function HeaderNav({ currentSection, goToSection }: { currentSection: number; go
       </nav>
       
       <div className={styles.headerCtas}>
-        {isAdmin ? (
-          <NextLink href="/admin" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>
-            Admin
-          </NextLink>
+        {isAuthenticated ? (
+          <UserProfile />
         ) : (
           <>
             <NextLink href="/login" className={`${styles.button} ${styles.secondary} hover-lift focus-ring`}>

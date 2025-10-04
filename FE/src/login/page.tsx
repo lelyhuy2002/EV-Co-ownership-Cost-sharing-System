@@ -5,22 +5,33 @@ import Image from "next/image";
 import { useState } from "react";
 import styles from "./page.module.css";
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || isLoading) return;
+    
+    setErrorMessage("");
     setIsSubmitting(true);
+    
     try {
-      // Placeholder: integrate auth later
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      // no-op
+      const result = await login({ email, password });
+      
+      if (!result.success) {
+        setErrorMessage(result.message);
+      }
+      // If successful, the AuthContext will handle navigation
+    } catch (error) {
+      setErrorMessage("Đã xảy ra lỗi. Vui lòng thử lại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,6 +80,19 @@ export default function LoginPage() {
             <span>Trang chủ</span>
           </button>
           <h2 className={styles.title}>Log in</h2>
+          {errorMessage && (
+            <div style={{ 
+              color: '#ef4444', 
+              backgroundColor: '#fef2f2', 
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              padding: '12px',
+              marginBottom: '16px',
+              fontSize: '14px'
+            }}>
+              {errorMessage}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className={styles.form}>
             <label className={styles.inputRow}>
               <span className={styles.inputIcon} aria-hidden>
@@ -106,8 +130,8 @@ export default function LoginPage() {
             </label>
 
             <div className={styles.actionsRow}>
-              <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>
-                {isSubmitting ? "Logging in…" : "Log In"}
+              <button type="submit" className={styles.primaryButton} disabled={isSubmitting || isLoading}>
+                {isSubmitting || isLoading ? "Logging in…" : "Log In"}
               </button>
               <Link href="#" className={styles.link}>
                 Forgot password?
