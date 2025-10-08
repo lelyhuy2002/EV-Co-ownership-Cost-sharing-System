@@ -260,7 +260,7 @@ export default function GroupsPage() {
           onChange={(e) => setInviteCode(e.target.value)}
         />
         <button className={styles.secondaryBtn} onClick={() => {/* future: validate & join */}}>Tham gia</button>
-        <button className={styles.primaryBtn} onClick={() => {/* future: create group flow */}}>Tạo nhóm mới</button>
+        <button className={styles.primaryBtn} onClick={() => { window.location.href = '/groups/create'; }}>Tạo nhóm mới</button>
         <div className={styles.helperText}>
           Dán liên kết mời từ bạn bè hoặc nhấn &quot;Tạo nhóm mới&quot; để bắt đầu. Người tạo sẽ trở thành Admin nhóm.
         </div>

@@ -13,7 +13,7 @@ interface UserRedirectProps {
 export default function UserRedirect({ 
   children, 
   redirectPath = '/groups',
-  allowedPaths = ['/groups', '/login', '/register', '/admin']
+  allowedPaths = ['/groups', '/login', '/register']
 }: UserRedirectProps) {
   const { user, loading, isNewUser } = useUserGroups();
   const router = useRouter();
@@ -31,6 +31,22 @@ export default function UserRedirect({
       authUser = raw ? JSON.parse(raw) : null;
     } catch {}
 
+    // Public routes (no auth required)
+    const publicPaths = ['/', '/home', '/login', '/register', '/contact', '/pricing'];
+    const isPublic = publicPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'));
+
+    // 0) Unauthenticated users: block protected areas
+    if (!authUser) {
+      if (currentPath.startsWith('/admin') || currentPath.startsWith('/dashboard') || currentPath.startsWith('/groups')) {
+        if (currentPath !== '/login') {
+          router.replace('/login');
+        }
+        return;
+      }
+      // allow public pages
+      if (isPublic) return;
+    }
+
     // 1) Admin users: restrict to /admin only
     if (authUser && (authUser.role === 'admin' || authUser.role === 'ADMIN')) {
       if (!currentPath.startsWith('/admin')) {
@@ -41,7 +57,7 @@ export default function UserRedirect({
 
     // 2) Non-admin users: gently prevent entering /admin (AdminLayout also guards)
     if (authUser && authUser.role !== 'admin' && currentPath.startsWith('/admin')) {
-      router.replace('/login');
+      router.replace('/dashboard');
       return;
     }
 

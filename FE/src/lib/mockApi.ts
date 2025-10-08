@@ -11,13 +11,22 @@ type Group = {
   createdDate: string;
   adminId?: string;
   adminName?: string;
-  status: 'open' | 'full' | 'pending' | 'active' | 'rejected';
+  status: 'open' | 'full' | 'pending' | 'active' | 'rejected' | 'recruiting' | 'closed';
   icon?: string;
   color?: string;
   rating?: number;
   reviewCount?: number;
   priceRange?: string;
   members?: string[]; // user ids
+  // DB-aligned fields (optional in FE mock)
+  groupName?: string; // CoOwnershipGroups.group_name
+  description?: string; // CoOwnershipGroups.description
+  estimatedValue?: number; // CoOwnershipGroups.estimated_value
+  approvalStatus?: 'pending' | 'approved' | 'rejected'; // CoOwnershipGroups.approval_status
+  rejectReason?: string | null; // CoOwnershipGroups.reject_reason
+  vehicleId?: number | string; // CoOwnershipGroups.vehicle_id
+  createdBy?: string; // CoOwnershipGroups.created_by (user id)
+  approvedBy?: string | null; // CoOwnershipGroups.approved_by
 };
 
 type JoinRequest = {
@@ -179,13 +188,21 @@ export const mockApi: any = {
       createdDate: new Date().toLocaleDateString('vi-VN'),
       adminId: payload.adminId,
       adminName: payload.adminName,
-      status: 'open',
+      status: (payload.status as any) ?? 'recruiting',
       icon: payload.icon ?? '🚗',
       color: payload.color ?? 'blue',
       rating: 4.5,
       reviewCount: 0,
       priceRange: payload.priceRange ?? 'TBD',
-      members: [payload.adminId]
+      members: [payload.adminId],
+      groupName: payload.groupName ?? payload.vehicleName ?? 'New Group',
+      description: payload.description ?? '',
+      estimatedValue: payload.estimatedValue ? Number(payload.estimatedValue) : undefined,
+      approvalStatus: (payload.approvalStatus as any) ?? 'pending',
+      rejectReason: payload.rejectReason ?? null,
+      vehicleId: payload.vehicleId,
+      createdBy: payload.createdBy ?? payload.adminId,
+      approvedBy: payload.approvedBy ?? null
     };
     groups.push(g);
     saveGroups(groups);
