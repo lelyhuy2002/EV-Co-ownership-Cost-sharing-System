@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiService, LoginRequest, LoginResponse, ApiError } from '@/lib/api';
+import mockApi, { User as MockUser } from '@/lib/mockApi';
 
 interface User {
   userId: number;
@@ -14,7 +15,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (credentials: LoginRequest) => Promise<{ success: boolean; message: string }>;
+  login: (credentials: LoginRequest) => Promise<{ success: boolean; message: string }>
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -60,6 +61,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginRequest): Promise<{ success: boolean; message: string }> => {
     try {
       setIsLoading(true);
+
+      // FE-only: check mock user store for status first
+      try {
+        const users = await mockApi.getUsers();
+        const mu: MockUser | undefined = users.find((u: MockUser) => u.email === credentials.email);
+        if (mu && mu.status && mu.status !== 'active') {
+          return { success: false, message: 'Tài khoản đang ở trạng thái chờ xét duyệt. Vui lòng đợi admin kích hoạt.' };
+        }
+      } catch {}
+
       const response: LoginResponse = await apiService.login(credentials);
       
       if (response.success) {
@@ -73,7 +84,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         localStorage.setItem('currentUser', JSON.stringify(userData));
         
-        // Redirect based on role
         if (response.role === 'admin') {
           router.push('/admin');
         } else {

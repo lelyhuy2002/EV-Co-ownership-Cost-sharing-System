@@ -79,7 +79,8 @@ export default function LoginPage() {
             </svg>
             <span>Trang chủ</span>
           </button>
-          <h2 className={styles.title}>Log in</h2>
+          <h2 className={styles.title}>Đăng Nhập</h2>
+          <p className={styles.subtitle}>Chào mừng trở lại hệ thống phân tích dữ liệu EV.</p>
           {errorMessage && (
             <div style={{ 
               color: '#ef4444', 
@@ -94,6 +95,7 @@ export default function LoginPage() {
             </div>
           )}
           <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.inputWrap}>
             <label className={styles.inputRow}>
               <span className={styles.inputIcon} aria-hidden>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -110,7 +112,9 @@ export default function LoginPage() {
               />
               <span className={styles.underline} />
             </label>
+            </div>
 
+            <div className={styles.inputWrap}>
             <label className={styles.inputRow}>
               <span className={styles.inputIcon} aria-hidden>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -128,6 +132,7 @@ export default function LoginPage() {
               />
               <span className={styles.underline} />
             </label>
+            </div>
 
             <div className={styles.actionsRow}>
               <button type="submit" className={styles.primaryButton} disabled={isSubmitting || isLoading}>
@@ -140,20 +145,22 @@ export default function LoginPage() {
           </form>
           <div className={styles.divider}>
             <span className={styles.dividerLine} />
-            <span className={styles.dividerText}>hoặc</span>
+            <span className={styles.dividerText}>— Hoặc tiếp tục với —</span>
             <span className={styles.dividerLine} />
           </div>
-          <button
-            type="button"
-            className={styles.googleButton}
-            onClick={handleGoogleSignIn}
-            disabled={isGoogleLoading}
-          >
-            <Image src="/google-logo.svg" alt="Google" width={18} height={18} />
-            <span className={styles.googleText}>
-              {isGoogleLoading ? "Đang mở Google…" : "Đăng nhập bằng Google"}
-            </span>
-          </button>
+          <div className={styles.socialStack}>
+            <button
+              type="button"
+              className={styles.googleButton}
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading}
+            >
+              <Image src="/google-logo.svg" alt="Google" width={18} height={18} />
+              <span className={styles.googleText}>
+                {isGoogleLoading ? "Đang mở Google…" : "Đăng nhập bằng Google"}
+              </span>
+            </button>
+          </div>
           <p className={styles.footerText}>
             New here? <Link href="/co-owner-registration" className={styles.linkAccent}>Sign up</Link>
           </p>

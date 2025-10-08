@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./Registration.module.css";
+import mockApi from "@/lib/mockApi";
 
 type OwnershipEntry = {
   coOwnerName: string;
@@ -37,6 +38,7 @@ export default function RegistrationForm() {
 
   // Errors (simple real-time validation)
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
 
   const progressPercent = useMemo(() => {
     return Math.round(((step - 1) / 2) * 100);
@@ -89,7 +91,6 @@ export default function RegistrationForm() {
   // Step validity (for disabling Next button)
   const isStepValid = useMemo(() => {
     if (step === 1) {
-      // Username is optional for DB; only require email and password
       return (
         emailRegex.test(email) &&
         password.length >= 6 &&
@@ -97,7 +98,6 @@ export default function RegistrationForm() {
       );
     }
     if (step === 2) {
-      // Only require full name and birthday and ensure age >= 18. CCCD and driver_license are optional.
       return fullName.trim().length > 0 && !!dob && calculateAgeYears(dob) >= MIN_AGE_YEARS;
     }
     if (step === 3) {
@@ -116,8 +116,6 @@ export default function RegistrationForm() {
     setDriverLicensePreview(null);
   }, [driverLicenseImage]);
 
-  // removed vehicle preview effect
-
   // Autosave to localStorage (except File objects)
   useEffect(() => {
     const saved = localStorage.getItem("registrationForm");
@@ -134,7 +132,6 @@ export default function RegistrationForm() {
         setDob(data.dob ?? "");
         setIdNumber(data.idNumber ?? "");
         setDriverLicense(data.driverLicense ?? "");
-        setLicensePlate(data.licensePlate ?? "");
       } catch {
         // ignore
       }
@@ -171,11 +168,8 @@ export default function RegistrationForm() {
       if (!fullName.trim()) nextErrors.fullName = "Vui lòng nhập họ tên";
       if (!dob) nextErrors.dob = "Vui lòng nhập ngày sinh";
       else if (calculateAgeYears(dob) < MIN_AGE_YEARS) nextErrors.dob = `Bạn phải từ ${MIN_AGE_YEARS} tuổi trở lên`;
-      // CCCD (idNumber) and driver_license are optional per DB, but if provided, validate CCCD format
       if (idNumber && !idRegex.test(idNumber)) nextErrors.idNumber = "CMND/CCCD phải 9 hoặc 12 số";
     }
-
-    // No step 3 validation needed (review)
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
@@ -196,42 +190,32 @@ export default function RegistrationForm() {
     });
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validateCurrentStep()) return;
-    const payload = {
-      // Align with Users DB table
-      user: {
-        full_name: fullName,
-        email,
-        password_hash: password, // NOTE: hash on server side
-        cccd: idNumber || null,
-        driver_license: driverLicense || null,
-        birthday: dob || null,
-        role: "co_owner",
-        verification_status: 'unverified',
-      },
-    };
-    // TODO: send payload and files to API endpoint
-    // For now, save to localStorage as current user (mock backend-less flow)
-    const current = {
-      id: `user-${Math.random().toString(36).slice(2, 9)}`,
-      username,
-      email,
-      fullName,
-      role: "co_owner",
-      groups: [],
-      hasGroups: false
-    };
     try {
-      localStorage.setItem('currentUser', JSON.stringify(current));
-    } catch {
-      // ignore
+      const profile = {
+        username,
+        fullName,
+        dob,
+        idNumber,
+        driverLicense,
+        // Store simple metadata for FE-only demo (no file binary)
+        attachments: {
+          idFrontImage: idFrontImage ? { name: idFrontImage.name, type: idFrontImage.type, size: idFrontImage.size } : null,
+          idBackImage: idBackImage ? { name: idBackImage.name, type: idBackImage.type, size: idBackImage.size } : null,
+          driverLicenseImage: driverLicenseImage ? { name: driverLicenseImage.name, type: driverLicenseImage.type, size: driverLicenseImage.size } : null,
+        }
+      };
+      const u = await mockApi.createUserPending({ username, fullName, email, password, role: 'coowner', profile });
+      setInfoMessage("Đăng ký thành công. Tài khoản của bạn đang chờ admin xét duyệt. Bạn sẽ có thể đăng nhập sau khi được kích hoạt.");
+      localStorage.setItem('lastRegisteredUser', JSON.stringify({ id: u.id, email: u.email, status: u.status }));
+      setTimeout(() => router.push('/login'), 5000);
+    } catch (err:any) {
+      setErrors(prev => ({ ...prev, submit: err?.message || 'Không thể đăng ký' }));
     }
-    // Redirect to login page after successful registration
-    router.push('/login');
   }
 
-  // Keyboard shortcuts: Enter -> next/submit, Escape -> back
+  // Keyboard shortcuts
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter") {
@@ -250,8 +234,6 @@ export default function RegistrationForm() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [step, isStepValid]);
 
-  // Ownership handlers removed
-
   return (
     <div className={styles.container}>
       <div className={styles.formCard} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
@@ -262,6 +244,12 @@ export default function RegistrationForm() {
           <div className={styles.progressInner} style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
+
+      {infoMessage && (
+        <div style={{ background: '#ecfeff', color: '#0e7490', border: '1px solid #a5f3fc', borderRadius: 8, padding: 12 }}>
+          {infoMessage}
+        </div>
+      )}
 
       {step === 1 && (
         <section className={styles.section} aria-label="Xác nhận thông tin">
@@ -278,7 +266,7 @@ export default function RegistrationForm() {
           </div>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>Mật khẩu (sẽ được băm ở backend)</label>
+              <label className={styles.label}>Mật khẩu</label>
               <input type="password" className={styles.input} placeholder="••••••" value={password} onChange={e => setPassword(e.target.value)} />
               {errors.password && <span className={styles.error}>{errors.password}</span>}
             </div>
@@ -432,18 +420,6 @@ export default function RegistrationForm() {
 
       <div className={styles.actions}>
         <button type="button" className={`${styles.button} ${styles.outline}`} onClick={goBack} disabled={step === 1}>Quay về</button>
-        <button type="button" className={styles.button} onClick={() => {
-          setUsername(""); setEmail(""); setRole("co_owner");
-          setPassword(""); setConfirmPassword("");
-          setFullName(""); setDob(""); setIdNumber("");
-          setIdFrontImage(null); setIdBackImage(null);
-          setDriverLicenseImage(null); setVehicleImage(null);
-          setDriverLicensePreview(null); setVehiclePreview(null);
-          setLicensePlate("");
-          setErrors({});
-          setStep(1 as StepKey);
-          try { localStorage.removeItem("registrationForm"); } catch {}
-        }}>Làm lại</button>
         {step < 3 && (
           <button
             type="button"
@@ -457,7 +433,7 @@ export default function RegistrationForm() {
           </button>
         )}
         {step === 3 && (
-          <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit}>Đăng ký</button>
+          <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit}>Gửi yêu cầu đăng ký</button>
         )}
       </div>
         {/** Illustration on large screens */}

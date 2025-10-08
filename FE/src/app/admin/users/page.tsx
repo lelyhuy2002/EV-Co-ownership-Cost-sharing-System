@@ -29,6 +29,8 @@ export default function AdminUsers() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
+  const [viewUser, setViewUser] = useState<any | null>(null);
+
   const load = async () => {
     const u = await mockApi.getUsers();
     setUsers(u || []);
@@ -40,9 +42,9 @@ export default function AdminUsers() {
     let data = users;
     if (query.trim()) {
       const q = query.toLowerCase();
-      data = data.filter(u => (u.username || u.fullName || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
+      data = data.filter((u:any) => (u.username || u.fullName || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q));
     }
-    if (roleFilter !== 'all') data = data.filter(u => u.role === roleFilter);
+    if (roleFilter !== 'all') data = data.filter((u:any) => u.role === roleFilter);
     data = sortUsers(data, sortKey, sortDir);
     return data;
   }, [users, query, roleFilter, sortKey, sortDir]);
@@ -55,10 +57,8 @@ export default function AdminUsers() {
   const doDelete = async () => {
     if (!deleteId) return setConfirmOpen(false);
     try {
-      // remove from mock users
       const all = await mockApi.getUsers();
       const remaining = (all || []).filter((x:any) => x.id !== deleteId);
-      // save directly using mockApi.createUser not available; we update localStorage via export API shape
       localStorage.setItem('mock_users_v1', JSON.stringify(remaining));
       toast.push('User deleted','success');
       setConfirmOpen(false);
@@ -69,6 +69,21 @@ export default function AdminUsers() {
       setConfirmOpen(false);
       setDeleteId(null);
     }
+  };
+
+  const approve = async (id: string) => {
+    try {
+      await mockApi.approveUser(id);
+      toast.push('Approved user','success');
+      await load();
+    } catch (e:any) { toast.push(e?.message || 'Failed','error'); }
+  };
+  const reject = async (id: string) => {
+    try {
+      await mockApi.rejectUser(id);
+      toast.push('Rejected user','success');
+      await load();
+    } catch (e:any) { toast.push(e?.message || 'Failed','error'); }
   };
 
   return (
@@ -96,6 +111,7 @@ export default function AdminUsers() {
               <option value="username">Name</option>
               <option value="email">Email</option>
               <option value="id">ID</option>
+              <option value="status">Status</option>
             </select>
             <button onClick={() => setSortDir(s => s === 'asc' ? 'desc' : 'asc')} style={{ padding: 8, borderRadius: 6, border: '1px solid #e6edf3' }}>{sortDir === 'asc' ? '↑' : '↓'}</button>
           </div>
@@ -109,19 +125,31 @@ export default function AdminUsers() {
                 <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '8px 0' }}>Name</th>
                 <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '8px 0' }}>Email</th>
                 <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '8px 0' }}>Role</th>
+                <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '8px 0' }}>Status</th>
                 <th style={{ textAlign: 'left', borderBottom: '1px solid #eee', padding: '8px 0' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {paged.map(u => (
+              {paged.map((u:any) => (
                 <tr key={u.id} style={{ transition: 'background 0.15s', cursor: 'default' }} onMouseEnter={e => (e.currentTarget.style.background = '#fbfdff')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <td style={{ padding: '10px 0' }}>{u.id}</td>
                   <td>{u.fullName || u.username}</td>
                   <td>{u.email}</td>
                   <td>{u.role}</td>
+                  <td>{u.status || 'active'}</td>
                   <td>
-                    <button style={{ marginRight: 8, padding: '6px 8px', borderRadius: 6 }}>Edit</button>
-                    <button onClick={() => confirmDelete(u.id)} style={{ padding: '6px 8px', borderRadius: 6 }}>Delete</button>
+                    <button onClick={async () => { const full = await mockApi.getUserById(u.id); setViewUser(full); }} style={{ marginRight: 8, padding: '6px 8px', borderRadius: 6 }}>View</button>
+                    {u.status !== 'active' ? (
+                      <>
+                        <button onClick={() => approve(u.id)} style={{ marginRight: 8, padding: '6px 8px', borderRadius: 6 }}>Approve</button>
+                        <button onClick={() => reject(u.id)} style={{ padding: '6px 8px', borderRadius: 6 }}>Reject</button>
+                      </>
+                    ) : (
+                      <>
+                        <button style={{ marginRight: 8, padding: '6px 8px', borderRadius: 6 }}>Edit</button>
+                        <button onClick={() => confirmDelete(u.id)} style={{ padding: '6px 8px', borderRadius: 6 }}>Delete</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -137,6 +165,45 @@ export default function AdminUsers() {
             </div>
           </div>
         </div>
+
+        {viewUser && (
+          <div role="dialog" aria-modal className="modal" style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: '#fff', width: 560, maxWidth: '96vw', borderRadius: 12, padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0 }}>User details</h3>
+                <button onClick={() => setViewUser(null)} style={{ padding: 6, borderRadius: 6 }}>Close</button>
+              </div>
+              <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, rowGap: 8 }}>
+                <div><b>ID:</b> {viewUser.id}</div>
+                <div><b>Status:</b> {viewUser.status}</div>
+                <div><b>Name:</b> {viewUser.fullName || viewUser.username}</div>
+                <div><b>Email:</b> {viewUser.email}</div>
+                <div><b>Role:</b> {viewUser.role}</div>
+                <div style={{ gridColumn: '1 / -1', marginTop: 8, fontWeight: 600 }}>Registration profile</div>
+                <div><b>Full name:</b> {viewUser.profile?.fullName || '(na)'}</div>
+                <div><b>Date of birth:</b> {viewUser.profile?.dob || '(na)'}</div>
+                <div><b>ID number:</b> {viewUser.profile?.idNumber || '(na)'}</div>
+                <div><b>Driver license:</b> {viewUser.profile?.driverLicense || '(na)'}</div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <b>Attachments:</b>
+                  <ul style={{ margin: '4px 0 0 16px' }}>
+                    <li>CCCD front: {viewUser.profile?.attachments?.idFrontImage?.name || '(none)'} ({viewUser.profile?.attachments?.idFrontImage?.type || ''})</li>
+                    <li>CCCD back: {viewUser.profile?.attachments?.idBackImage?.name || '(none)'} ({viewUser.profile?.attachments?.idBackImage?.type || ''})</li>
+                    <li>Driver license: {viewUser.profile?.attachments?.driverLicenseImage?.name || '(none)'} ({viewUser.profile?.attachments?.driverLicenseImage?.type || ''})</li>
+                  </ul>
+                </div>
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                {viewUser.status !== 'active' && (
+                  <>
+                    <button onClick={async ()=> { await approve(viewUser.id); setViewUser(null); }} style={{ padding: '6px 8px', borderRadius: 6 }}>Approve</button>
+                    <button onClick={async ()=> { await reject(viewUser.id); setViewUser(null); }} style={{ padding: '6px 8px', borderRadius: 6 }}>Reject</button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </AdminLayout>
 
       <ConfirmModal open={confirmOpen} title="Delete user" description="This will permanently delete the user from the demo datastore. Continue?" onCancel={() => { setConfirmOpen(false); setDeleteId(null); }} onConfirm={doDelete} />

@@ -19,20 +19,41 @@ export default function UserRedirect({
   const router = useRouter();
 
   useEffect(() => {
+    if (loading) return;
+
+    // Determine current route
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/';
+
+    // Read current authenticated user from storage (AuthContext persists here)
+    let authUser: any = null;
+    try {
+      const raw = localStorage.getItem('currentUser');
+      authUser = raw ? JSON.parse(raw) : null;
+    } catch {}
+
+    // 1) Admin users: restrict to /admin only
+    if (authUser && (authUser.role === 'admin' || authUser.role === 'ADMIN')) {
+      if (!currentPath.startsWith('/admin')) {
+        router.replace('/admin');
+        return;
+      }
+    }
+
+    // 2) Non-admin users: gently prevent entering /admin (AdminLayout also guards)
+    if (authUser && authUser.role !== 'admin' && currentPath.startsWith('/admin')) {
+      router.replace('/login');
+      return;
+    }
+
+    // 3) New non-admin users: guide to groups if on a disallowed path
     if (!loading && user) {
-      // Check if user is on an allowed path
-      const currentPath = window.location.pathname;
       const isAllowedPath = allowedPaths.some(path => currentPath.startsWith(path));
-      
-      // If user has no groups and is not on an allowed path, redirect them
       if (isNewUser && !isAllowedPath) {
-        console.log('New user detected, redirecting to find-groups page');
         router.push(redirectPath);
       }
     }
   }, [user, loading, isNewUser, router, redirectPath, allowedPaths]);
 
-  // Show loading state while checking user status
   if (loading) {
     return (
       <div style={{

@@ -30,6 +30,16 @@ type JoinRequest = {
   createdAt: string;
 };
 
+type User = {
+  id: string;
+  username?: string;
+  fullName?: string;
+  email: string;
+  role: 'admin' | 'coowner' | 'provider' | 'consumer';
+  status?: 'pending' | 'active' | 'rejected';
+  groups?: any[];
+};
+
 const GROUPS_KEY = 'mock_groups_v1';
 const REQ_KEY = 'mock_join_requests_v1';
 const USERS_KEY = 'mock_users_v1';
@@ -118,12 +128,12 @@ function saveRequests(reqs: JoinRequest[]) {
   localStorage.setItem(REQ_KEY, JSON.stringify(reqs));
 }
 
-function loadUsers() {
+function loadUsers(): User[] {
   const raw = localStorage.getItem(USERS_KEY);
   if (!raw) {
-    const defaults = [
-      { id: 'user-admin', username: 'admin', fullName: 'System Admin', email: 'admin@local', role: 'admin', groups: [] },
-      { id: 'user-002', username: 'trb', fullName: 'Trần Thị B', email: 'trb@local', role: 'coowner', groups: [] }
+    const defaults: User[] = [
+      { id: 'user-admin', username: 'admin', fullName: 'System Admin', email: 'admin@local', role: 'admin', status: 'active', groups: [] },
+      { id: 'user-002', username: 'trb', fullName: 'Trần Thị B', email: 'trb@local', role: 'coowner', status: 'active', groups: [] }
     ];
     localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
     return defaults;
@@ -131,7 +141,7 @@ function loadUsers() {
   try { return JSON.parse(raw); } catch { return []; }
 }
 
-function saveUsers(users: any[]) {
+function saveUsers(users: User[]) {
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
@@ -183,6 +193,64 @@ export const mockApi: any = {
     return g;
   },
 
+  // Users
+  getUsers: async () => {
+    await new Promise(r => setTimeout(r, 100));
+    return loadUsers();
+  },
+
+  createUserPending: async (payload: { username?: string; fullName?: string; email: string; password: string; role?: User['role']; profile?: any }) => {
+    const users = loadUsers();
+    const id = uid('user-');
+    const u: User & { profile?: any } = {
+      id,
+      username: payload.username || payload.email,
+      fullName: payload.fullName || payload.username || payload.email,
+      email: payload.email,
+      role: payload.role || 'coowner',
+      status: 'pending',
+      groups: [],
+      profile: payload.profile || {}
+    };
+    users.push(u);
+    saveUsers(users);
+    addLog({ type: 'user.register', message: `User ${u.id} registered pending approval`, meta: { user: u } });
+    return u;
+  },
+
+  getUserById: async (id: string) => {
+    const users = loadUsers();
+    return users.find((u:any) => u.id === id) || null;
+  },
+
+  approveUser: async (userId: string) => {
+    const users = loadUsers();
+    const idx = users.findIndex((u:User) => u.id === userId);
+    if (idx === -1) throw new Error('User not found');
+    users[idx].status = 'active';
+    saveUsers(users);
+    addLog({ type: 'user.approve', message: `User ${userId} approved`, meta: { userId } });
+    return users[idx];
+  },
+
+  rejectUser: async (userId: string, reason?: string) => {
+    const users = loadUsers();
+    const idx = users.findIndex((u:User) => u.id === userId);
+    if (idx === -1) throw new Error('User not found');
+    users[idx].status = 'rejected';
+    saveUsers(users);
+    addLog({ type: 'user.reject', message: `User ${userId} rejected: ${reason || ''}`, meta: { userId, reason } });
+    return users[idx];
+  },
+
+  // Existing join request APIs...
+  getJoinRequests: async (filter?: { status?: string }) => {
+    await new Promise(r => setTimeout(r, 150));
+    const reqs = loadRequests();
+    if (filter?.status) return reqs.filter(q => q.status === filter.status);
+    return reqs;
+  },
+
   requestJoin: async (groupId: string, userId: string, userName?: string, message?: string) => {
     const reqs = loadRequests();
     const r: JoinRequest = {
@@ -200,13 +268,6 @@ export const mockApi: any = {
     return r;
   },
 
-  getJoinRequests: async (filter?: { status?: string }) => {
-    await new Promise(r => setTimeout(r, 150));
-    const reqs = loadRequests();
-    if (filter?.status) return reqs.filter(q => q.status === filter.status);
-    return reqs;
-  },
-
   approveJoinRequest: async (requestId: string) => {
     const reqs = loadRequests();
     const idx = reqs.findIndex(r => r.id === requestId);
@@ -214,7 +275,6 @@ export const mockApi: any = {
     reqs[idx].status = 'approved';
     saveRequests(reqs);
 
-    // add user to group members
     const groups = loadGroups();
     const g = groups.find(x => x.id === reqs[idx].groupId);
     if (g) {
@@ -241,7 +301,7 @@ export const mockApi: any = {
   }
 };
 
-// Booking & Usage helpers
+// Booking & Usage helpers (unchanged)
 function loadBookings() {
   const raw = localStorage.getItem(BOOKINGS_KEY);
   if (!raw) { localStorage.setItem(BOOKINGS_KEY, JSON.stringify([])); return []; }
@@ -288,7 +348,6 @@ mockApi.updateBookingStatus = async (bookingId: string, status: string) => {
 };
 
 mockApi.replaceBooking = async (oldBookingId: string, newBooking: any) => {
-  // mark old booking bumped and create new booking
   await mockApi.updateBookingStatus(oldBookingId, 'bumped');
   return await mockApi.createBooking(newBooking.groupId, newBooking.userId, newBooking.slot);
 };
@@ -321,11 +380,10 @@ mockApi.getGroupMembers = async (groupId: string) => {
   const users = loadUsers();
   const g = groups.find(x => x.id === groupId);
   if (!g || !g.members) return [];
-  // produce light member objects with percent and color (demo)
   return g.members.map((uid:any, idx:number) => {
-    const u = users.find((x:any) => x.id === uid) || { id: uid, fullName: uid };
+    const u = (users as User[]).find((x:any) => x.id === uid) || { id: uid, fullName: uid };
     const memberCount = Math.max(1, (g.members && g.members.length) ? g.members.length : 1);
-    return { id: u.id, name: u.fullName || u.username || u.id, percent: Math.max(5, Math.floor(100 / memberCount) ), color: ['#3b82f6','#22c55e','#f97316','#8b5cf6'][idx % 4] };
+    return { id: (u as any).id, name: (u as any).fullName || (u as any).username || (u as any).id, percent: Math.max(5, Math.floor(100 / memberCount) ), color: ['#3b82f6','#22c55e','#f97316','#8b5cf6'][idx % 4] };
   });
 };
 
@@ -352,31 +410,15 @@ mockApi.rejectPackage = async (packageId: string, reason?: string) => {
   return groups[idx];
 };
 
-// extend mockApi with users and logs
-mockApi.getUsers = async () => {
-  await new Promise(r => setTimeout(r, 100));
-  return loadUsers();
-};
-
-mockApi.createUser = async (payload: any) => {
-  const users = loadUsers();
-  const u = { id: payload.id ?? uid('user-'), username: payload.username ?? payload.email, fullName: payload.fullName ?? payload.username, email: payload.email, role: payload.role ?? 'coowner', groups: payload.groups ?? [] };
-  users.push(u);
-  saveUsers(users);
-  addLog({ type: 'user.create', message: `User ${u.id} created`, meta: { user: u } });
-  return u;
-};
-
 mockApi.getLogs = async () => {
   await new Promise(r => setTimeout(r, 50));
   return loadLogs();
 };
 
 mockApi.exportReport = async (type: 'users' | 'groups' | 'requests' | 'logs') => {
-  // simple CSV exporter
   if (type === 'users') {
     const u = loadUsers();
-    const csv = ['id,username,fullName,email,role'].concat(u.map((x:any)=>`${x.id},${x.username},${x.fullName},${x.email},${x.role}`)).join('\n');
+    const csv = ['id,username,fullName,email,role,status'].concat(u.map((x:any)=>`${x.id},${x.username},${x.fullName},${x.email},${x.role},${x.status || ''}`)).join('\n');
     return { filename: 'users.csv', content: csv };
   }
   if (type === 'groups') {
@@ -398,5 +440,4 @@ mockApi.exportReport = async (type: 'users' | 'groups' | 'requests' | 'logs') =>
 };
 
 export default mockApi;
-
-export type { Group, JoinRequest };
+export type { Group, JoinRequest, User };

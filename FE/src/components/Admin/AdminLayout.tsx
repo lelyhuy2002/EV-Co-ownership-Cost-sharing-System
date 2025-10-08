@@ -2,13 +2,44 @@
 
 import Link from 'next/link';
 import Header from '@/components/Header/Header';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children, active = 'index' }: { children: React.ReactNode; active?: string }) {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('currentUser');
+      const user = raw ? JSON.parse(raw) : null;
+      if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
+        // not admin → redirect away
+        router.replace('/login');
+        return;
+      }
+    } catch {
+      router.replace('/login');
+      return;
+    } finally {
+      setChecking(false);
+    }
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F7F8FC' }}>
+        <div style={{ background: '#fff', padding: 16, borderRadius: 12, border: '1px solid #eef2ff', boxShadow: '0 6px 20px rgba(2,6,23,0.04)' }}>
+          Đang kiểm tra quyền truy cập…
+        </div>
+      </div>
+    );
+  }
+
   // Palette
-  const bg = '#F7F8FC'; // page background
+  const bg = '#F7F8FC';
   const surface = '#FFFFFF';
-  const accent = '#0b5cff'; // blue accent
+  const accent = '#0b5cff';
   const accentSoft = '#e6f0ff';
   const muted = '#6b7280';
 
