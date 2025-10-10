@@ -1,5 +1,13 @@
 // API configuration and services
-const API_BASE_URL = 'http://localhost:8080';
+// Prefer env var if provided; fallback to localhost for development
+const API_BASE_URL =
+  (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_API_BASE_URL)
+    ? String(process.env.NEXT_PUBLIC_API_BASE_URL)
+    : 'http://localhost:8080';
+
+// Allow overriding endpoint paths to match backend repo without code edits
+const LOGIN_PATH = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_LOGIN_PATH) || '/api/auth/login';
+const REGISTER_PATH = (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_REGISTER_PATH) || '/api/auth/register';
 
 export interface LoginRequest {
   email: string;
@@ -13,6 +21,20 @@ export interface LoginResponse {
   fullName: string;
   email: string;
   role: string;
+}
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  fullName: string;
+  // optional fields your BE may accept; keep minimal for student level
+  username?: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  userId?: number;
 }
 
 export class ApiError extends Error {
@@ -77,11 +99,29 @@ class ApiService {
     }
   }
 
+  // Generic helpers for common methods
+  async get<T>(endpoint: string, init?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET', ...init });
+  }
+
+  async post<T, B = unknown>(endpoint: string, body?: B, init?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { method: 'POST', body: body ? JSON.stringify(body) : undefined, ...init });
+  }
+
+  async put<T, B = unknown>(endpoint: string, body?: B, init?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { method: 'PUT', body: body ? JSON.stringify(body) : undefined, ...init });
+  }
+
+  async del<T>(endpoint: string, init?: RequestInit): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE', ...init });
+  }
+
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return this.request<LoginResponse>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
+    return this.post<LoginResponse, LoginRequest>(LOGIN_PATH, credentials);
+  }
+
+  async register(payload: RegisterRequest): Promise<RegisterResponse> {
+    return this.post<RegisterResponse, RegisterRequest>(REGISTER_PATH, payload);
   }
 }
 

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./Registration.module.css";
 import mockApi from "@/lib/mockApi";
+import { apiService } from "@/lib/api";
 
 type OwnershipEntry = {
   coOwnerName: string;
@@ -14,6 +15,7 @@ type StepKey = 1 | 2 | 3;
 export default function RegistrationForm() {
   const router = useRouter();
   const [step, setStep] = useState<StepKey>(1);
+  const [submitting, setSubmitting] = useState(false);
 
   // Step 1: Account
   const [username, setUsername] = useState("");
@@ -191,27 +193,23 @@ export default function RegistrationForm() {
   }
 
   async function handleSubmit() {
+    if (submitting) return;
     if (!validateCurrentStep()) return;
     try {
-      const profile = {
-        username,
-        fullName,
-        dob,
-        idNumber,
-        driverLicense,
-        // Store simple metadata for FE-only demo (no file binary)
-        attachments: {
-          idFrontImage: idFrontImage ? { name: idFrontImage.name, type: idFrontImage.type, size: idFrontImage.size } : null,
-          idBackImage: idBackImage ? { name: idBackImage.name, type: idBackImage.type, size: idBackImage.size } : null,
-          driverLicenseImage: driverLicenseImage ? { name: driverLicenseImage.name, type: driverLicenseImage.type, size: driverLicenseImage.size } : null,
-        }
-      };
-      const u = await mockApi.createUserPending({ username, fullName, email, password, role: 'coowner', profile });
-      setInfoMessage("Đăng ký thành công. Tài khoản của bạn đang chờ admin xét duyệt. Bạn sẽ có thể đăng nhập sau khi được kích hoạt.");
-      localStorage.setItem('lastRegisteredUser', JSON.stringify({ id: u.id, email: u.email, status: u.status }));
-      setTimeout(() => router.push('/login'), 5000);
+      setSubmitting(true);
+      // Call real backend register API
+      const res = await apiService.register({ email, password, fullName, username });
+      if (res.success) {
+        setInfoMessage("Đăng ký thành công. Vui lòng kiểm tra email hoặc đăng nhập.");
+        setTimeout(() => router.push('/login'), 3000);
+        return;
+      }
+      // Fallback: if BE returns success=false, surface message
+      setErrors(prev => ({ ...prev, submit: res.message || 'Không thể đăng ký' }));
     } catch (err:any) {
       setErrors(prev => ({ ...prev, submit: err?.message || 'Không thể đăng ký' }));
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -433,9 +431,16 @@ export default function RegistrationForm() {
           </button>
         )}
         {step === 3 && (
-          <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit}>Gửi yêu cầu đăng ký</button>
+          <button type="button" className={`${styles.button} ${styles.primary}`} onClick={handleSubmit} disabled={submitting}>
+            {submitting ? 'Đang gửi…' : 'Gửi yêu cầu đăng ký'}
+          </button>
         )}
       </div>
+      {errors.submit && (
+        <div style={{ marginTop: 12, color: '#b91c1c', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, padding: 10 }}>
+          {errors.submit}
+        </div>
+      )}
         {/** Illustration on large screens */}
         <aside className={styles.illustration} aria-hidden>
           <div className={styles.illustrationInner}>

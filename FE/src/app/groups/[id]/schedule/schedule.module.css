@@ -1,4 +1,4 @@
-/* Premium EV Data Marketplace Styles */
+/* Schedule Page Styles */
 :root {
   --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --bg-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -720,6 +720,7 @@
 @keyframes spinDots { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
 /* Button style refinements to match tech palette */
+/* Button overrides (keep visuals consistent) */
 .primaryBtn { background: var(--accent-gradient); color: white; padding: 10px 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; box-shadow: 0 8px 24px rgba(91,33,182,0.08); }
 .secondaryBtn { background: #fff; border: 1px solid rgba(2,6,23,0.06); padding: 10px 12px; border-radius: 12px; cursor: pointer; font-weight: 700; }
 

@@ -62,14 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // FE-only: check mock user store for status first
-      try {
-        const users = await mockApi.getUsers();
-        const mu: MockUser | undefined = users.find((u: MockUser) => u.email === credentials.email);
-        if (mu && mu.status && mu.status !== 'active') {
-          return { success: false, message: 'Tài khoản đang ở trạng thái chờ xét duyệt. Vui lòng đợi admin kích hoạt.' };
-        }
-      } catch {}
+      // Removed mock pre-check; rely on backend validation only
 
       const response: LoginResponse = await apiService.login(credentials);
       

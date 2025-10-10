@@ -44,3 +44,48 @@ export interface SocialLink {
   label: string;
   icon: string;
 }
+
+// App-shared domain types (kept minimal for student-level clarity)
+export interface Member {
+  id: string;
+  name: string;
+  percent: number;
+  color: string;
+}
+
+export interface BookingSlot {
+  date: string;
+  start: string;
+  end?: string;
+  endDate?: string;
+  endTimeExpected?: string;
+  notes?: string;
+}
+
+export interface Booking {
+  id: string;
+  groupId: string;
+  userId: string;
+  slot: BookingSlot;
+  status: string;
+  createdAt: string;
+}
+
+export interface UsageEntry {
+  id: string;
+  bookingId: string;
+  ts: string | number;
+  usage: {
+    recordedBy?: string;
+    distanceKm?: number;
+    durationMin?: number;
+    cost?: number;
+    paid?: boolean;
+  };
+}
+
+export interface GroupInfo {
+  id: string;
+  vehicleName?: string;
+  vehicleModel?: string;
+}

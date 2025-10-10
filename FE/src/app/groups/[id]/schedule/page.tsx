@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import mockApi from '@/lib/mockApi';
 import Header from '@/components/Header/Header';
 import styles from './schedule.module.css';
@@ -22,19 +22,26 @@ type Booking = {
   createdAt: string;
 };
 
+// Basic shared types to avoid using any
+type Member = { id: string; name: string; percent: number; color: string };
+type UsageRow = { id: string; bookingId: string; ts: string | number; usage: { recordedBy?: string; distanceKm?: number; durationMin?: number; cost?: number; paid?: boolean } };
+type GroupInfo = { id: string; vehicleName?: string; vehicleModel?: string } | null;
+type AIStatus = { type: 'ok' | 'conflict'; note: string } | null;
+type SmartSlot = { date: string; start: string; end: string };
+type DragState = { date: string; startMin: number; endMin: number } | null;
+
 export default function GroupSchedulePage() {
   const params = useParams() as { id?: string };
   const groupId = params?.id ?? 'unknown';
-  const router = useRouter();
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [endDate, setEndDate] = useState('');
   const [endTimeExpected, setEndTimeExpected] = useState('10:00');
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [usages, setUsages] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [groupInfo, setGroupInfo] = useState<any | null>(null);
+  const [usages, setUsages] = useState<UsageRow[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [groupInfo, setGroupInfo] = useState<GroupInfo>(null);
   const [monthCursor, setMonthCursor] = useState<Date>(() => new Date());
   const [expanded, setExpanded] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,9 +49,9 @@ export default function GroupSchedulePage() {
   const [aiChecking, setAiChecking] = useState(false);
   const [barsReady, setBarsReady] = useState(false);
   const [newUserId, setNewUserId] = useState<string>('');
-  const [aiStatus, setAiStatus] = useState<null | { type: 'ok' | 'conflict'; note: string }>(null);
-  const [smartSlots, setSmartSlots] = useState<Array<{ date: string; start: string; end: string }>>([]);
-  const [dragging, setDragging] = useState<null | { date: string; startMin: number; endMin: number }>(null);
+  const [aiStatus, setAiStatus] = useState<AIStatus>(null);
+  const [smartSlots, setSmartSlots] = useState<SmartSlot[]>([]);
+  const [dragging, setDragging] = useState<DragState>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmMeta, setConfirmMeta] = useState<{ hasConflict: boolean; conflictWith?: string }>({ hasConflict: false });
   const [batteryPercent, setBatteryPercent] = useState<number>(28);
@@ -56,16 +63,16 @@ export default function GroupSchedulePage() {
 
   useEffect(() => {
     (async () => {
-      const [b, u, m, gs] = await Promise.all([
+      const [bookingsResp, usageRows, groupMembers, groups] = await Promise.all([
         mockApi.getBookingsForGroup(groupId),
         mockApi.getUsageHistory({ groupId }),
         mockApi.getGroupMembers(groupId),
         mockApi.getGroups()
       ]);
-      setBookings(b || []);
-      setUsages(u || []);
-      setMembers(m || []);
-      setGroupInfo((gs || []).find((g:any) => g.id === groupId) || null);
+      setBookings(bookingsResp || []);
+      setUsages(usageRows || []);
+      setMembers(groupMembers || []);
+      setGroupInfo((groups || []).find((g:any) => g.id === groupId) || null);
       // reset/animate bars after data loads
       setBarsReady(false);
       setTimeout(() => setBarsReady(true), 240);
@@ -74,10 +81,16 @@ export default function GroupSchedulePage() {
 
   const exportCSV = async () => {
     const rows = await mockApi.getUsageHistory({ groupId });
-    const csv = ['id,bookingId,ts,distanceKm,durationMin,cost'].concat(rows.map((r:any)=>`${r.id},${r.bookingId},${r.ts},${r.usage.distanceKm||''},${r.usage.durationMin||''},${r.usage.cost||''}`)).join('\n');
+    const header = 'id,bookingId,ts,distanceKm,durationMin,cost';
+    const lines = rows.map((row:any) => (
+      `${row.id},${row.bookingId},${row.ts},${row.usage.distanceKm||''},${row.usage.durationMin||''},${row.usage.cost||''}`
+    ));
+    const csv = [header].concat(lines).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `usage_${groupId}.csv`; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.href = url; a.download = `usage_${groupId}.csv`; a.click();
+    URL.revokeObjectURL(url);
   };
 
   const monthDays = useMemo(() => {
@@ -95,8 +108,8 @@ export default function GroupSchedulePage() {
   const weekDays = useMemo(() => {
     const days: string[] = [];
     const base = new Date();
-    const day = base.getDay(); // 0=Sun
-    const mondayOffset = ((day + 6) % 7); // 0 for Monday
+    const dayIndex = base.getDay(); // 0=Sun
+    const mondayOffset = ((dayIndex + 6) % 7); // 0 for Monday
     const monday = new Date(base);
     monday.setDate(base.getDate() - mondayOffset);
     for (let i = 0; i < 7; i++) {
@@ -119,7 +132,7 @@ export default function GroupSchedulePage() {
     return map;
   }, [bookings, displayedDays]);
 
-  const getMember = (id: string) => members.find(m => m.id === id) || { id, name: id, percent: 0, color: '#9ca3af' };
+  const getMember = (id: string): Member => members.find(m => m.id === id) || { id, name: id, percent: 0, color: '#9ca3af' };
 
   // Tính toán số ngày tối đa được đặt dựa trên % sở hữu
   const getMaxBookingDays = (ownershipPercent: number) => {
@@ -149,7 +162,7 @@ export default function GroupSchedulePage() {
     return `${h}:${m}`;
   };
 
-  const computeSmartSlots = (targetDate: string, desiredStart: string, desiredEnd: string) => {
+  const computeSmartSlots = (targetDate: string, desiredStart: string, desiredEnd: string): SmartSlot[] => {
     const dayBookings = (bookingsByDate[targetDate] || []).filter(b => b.status === 'confirmed');
     const occupied: Array<[number, number]> = dayBookings
       .map(b => [toMinutes(b.slot.start), toMinutes(b.slot.end || b.slot.start)] as [number, number])
@@ -249,11 +262,11 @@ export default function GroupSchedulePage() {
   // Personal analysis: compute user's total duration vs group total (simple aggregation)
   const personalAnalysis = useMemo(() => {
     const userUsages = usages.filter(u => {
-      const b = bookings.find((bb:any) => bb.id === u.bookingId);
+      const b = bookings.find((bb) => bb.id === u.bookingId);
       return b && b.userId === currentUserId;
     });
-    const userMinutes = userUsages.reduce((s, u) => s + (u.usage.durationMin || 0), 0);
-    const totalMinutes = usages.reduce((s, u) => s + (u.usage.durationMin || 0), 0) || 1;
+    const userMinutes = userUsages.reduce((sum, u) => sum + (u.usage.durationMin || 0), 0);
+    const totalMinutes = usages.reduce((sum, u) => sum + (u.usage.durationMin || 0), 0) || 1;
     const pct = Math.round((userMinutes / totalMinutes) * 100);
     const myPercent = (members.find(m => m.id === currentUserId)?.percent) || 0;
     return { userMinutes, totalMinutes, pct, myPercent };
@@ -298,6 +311,8 @@ export default function GroupSchedulePage() {
     setPanelOpen(true);
     setDragging(null);
   };
+
+  const todayIso = new Date().toISOString().split('T')[0];
 
   return (
     <>
@@ -468,7 +483,7 @@ export default function GroupSchedulePage() {
                 className={styles.input} 
                 type="date" 
                 value={date} 
-                min={new Date().toISOString().split('T')[0]}
+                min={todayIso}
                 onChange={e => setDate(e.target.value)} 
               />
             </div>
@@ -482,7 +497,7 @@ export default function GroupSchedulePage() {
                 className={styles.input} 
                 type="date" 
                 value={endDate} 
-                min={date || new Date().toISOString().split('T')[0]}
+                min={date || todayIso}
                 onChange={e => setEndDate(e.target.value)} 
               />
             </div>
@@ -525,15 +540,7 @@ export default function GroupSchedulePage() {
               </div>
             )}
             <div style={{ marginTop: 12 }}>
-              <button className={styles.exportBtn} onClick={async () => {
-                const rows = await mockApi.getUsageHistory({ groupId });
-                const csv = ['id,bookingId,ts,distanceKm,durationMin,cost'].concat(rows.map((r:any)=>`${r.id},${r.bookingId},${r.ts},${r.usage.distanceKm||''},${r.usage.durationMin||''},${r.usage.cost||''}`)).join('\n');
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `usage_${groupId}.csv`; a.click();
-                URL.revokeObjectURL(url);
-              }}>Export usage (.csv)</button>
+              <button className={styles.exportBtn} onClick={exportCSV}>Export usage (.csv)</button>
             </div>
           </div>
 
@@ -606,7 +613,7 @@ export default function GroupSchedulePage() {
                 className={styles.input} 
                 type="date" 
                 value={date} 
-                min={new Date().toISOString().split('T')[0]}
+                min={todayIso}
                 onChange={e => setDate(e.target.value)} 
               />
               <label>Giờ bắt đầu</label>
@@ -616,7 +623,7 @@ export default function GroupSchedulePage() {
                 className={styles.input} 
                 type="date" 
                 value={endDate} 
-                min={date || new Date().toISOString().split('T')[0]}
+                min={date || todayIso}
                 onChange={e => setEndDate(e.target.value)} 
               />
               <label>Giờ kết thúc dự kiến</label>
