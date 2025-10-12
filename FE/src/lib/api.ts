@@ -27,8 +27,15 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
-  // optional fields your BE may accept; keep minimal for student level
   username?: string;
+  // Backend RegisterRequest fields
+  cccd?: string;
+  driverLicense?: string;
+  birthday?: string; // LocalDate format: "YYYY-MM-DD"
+  location?: string;
+  cccdFrontBase64?: string;
+  cccdBackBase64?: string;
+  driverLicenseBase64?: string;
 }
 
 export interface RegisterResponse {
@@ -117,11 +124,116 @@ class ApiService {
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return this.post<LoginResponse, LoginRequest>(LOGIN_PATH, credentials);
+    // Backend trả về String, không phải JSON object
+    const url = `${this.baseURL}${LOGIN_PATH}`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
+      }
+
+      // Backend trả về String đơn giản
+      const message = await response.text();
+      
+      // Parse String response thành LoginResponse object
+      if (message === "Đăng nhập thành công!") {
+        // Success: Cần lấy thêm thông tin user từ session hoặc endpoint khác
+        // Hiện tại không có endpoint GET user info, nên dùng mock data
+        return {
+          success: true,
+          message: message,
+          userId: 0, // Backend không trả về, cần endpoint /api/auth/me
+          fullName: "", // Backend không trả về
+          email: credentials.email,
+          role: "user" // Default
+        };
+      } else {
+        // Error: "Tài khoản không tồn tại" hoặc "Sai mật khẩu"
+        return {
+          success: false,
+          message: message,
+          userId: 0,
+          fullName: "",
+          email: "",
+          role: ""
+        };
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new ApiError(
+          'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.',
+          0
+        );
+      }
+      
+      throw new ApiError(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      );
+    }
   }
 
   async register(payload: RegisterRequest): Promise<RegisterResponse> {
-    return this.post<RegisterResponse, RegisterRequest>(REGISTER_PATH, payload);
+    // Backend trả về String, không phải JSON object
+    const url = `${this.baseURL}${REGISTER_PATH}`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      if (!response.ok) {
+        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
+      }
+
+      // Backend trả về String: "success" hoặc error message
+      const message = await response.text();
+      
+      if (message === "success") {
+        return {
+          success: true,
+          message: "Đăng ký thành công!"
+        };
+      } else {
+        // Error message: "Email đã tồn tại!", "CCCD đã tồn tại!"
+        return {
+          success: false,
+          message: message
+        };
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new ApiError(
+          'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.',
+          0
+        );
+      }
+      
+      throw new ApiError(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      );
+    }
   }
 }
 
