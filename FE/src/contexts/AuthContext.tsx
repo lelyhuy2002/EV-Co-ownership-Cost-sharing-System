@@ -66,18 +66,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response: LoginResponse = await apiService.login(credentials);
       
+      console.log('Login response:', response); // Debug log
+      
       if (response.success) {
+        // Normalize role to lowercase for consistent handling
+        const normalizedRole = response.role?.toLowerCase() || 'user';
+        
+        console.log('Normalized role:', normalizedRole); // Debug log
+        
         const userData: User = {
           userId: response.userId,
           fullName: response.fullName,
           email: response.email,
-          role: response.role,
+          role: normalizedRole,
         };
         
         setUser(userData);
         localStorage.setItem('currentUser', JSON.stringify(userData));
         
-        if (response.role === 'admin') {
+        // Redirect based on role (case-insensitive)
+        console.log('Redirecting to:', normalizedRole === 'admin' ? '/admin' : '/dashboard'); // Debug log
+        
+        if (normalizedRole === 'admin') {
           router.push('/admin');
         } else {
           router.push('/dashboard');

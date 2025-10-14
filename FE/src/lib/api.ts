@@ -124,7 +124,7 @@ class ApiService {
   }
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    // Backend trả về String, không phải JSON object
+    // Backend trả về JSON object với LoginResponse format
     const url = `${this.baseURL}${LOGIN_PATH}`;
     const config: RequestInit = {
       method: 'POST',
@@ -137,36 +137,30 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
-      if (!response.ok) {
-        throw new ApiError(`HTTP error! status: ${response.status}`, response.status);
-      }
-
-      // Backend trả về String đơn giản
-      const message = await response.text();
+      // Parse JSON response (cả success và error đều trả JSON)
+      const data = await response.json();
       
-      // Parse String response thành LoginResponse object
-      if (message === "Đăng nhập thành công!") {
-        // Success: Cần lấy thêm thông tin user từ session hoặc endpoint khác
-        // Hiện tại không có endpoint GET user info, nên dùng mock data
-        return {
-          success: true,
-          message: message,
-          userId: 0, // Backend không trả về, cần endpoint /api/auth/me
-          fullName: "", // Backend không trả về
-          email: credentials.email,
-          role: "user" // Default
-        };
-      } else {
-        // Error: "Tài khoản không tồn tại" hoặc "Sai mật khẩu"
+      if (!response.ok) {
+        // HTTP error (400, 401, etc.) - Backend trả về LoginResponse với success=false
         return {
           success: false,
-          message: message,
+          message: data.message || `HTTP error! status: ${response.status}`,
           userId: 0,
           fullName: "",
           email: "",
           role: ""
         };
       }
+
+      // HTTP 200 OK - Backend trả về LoginResponse đầy đủ
+      return {
+        success: data.success || true,
+        message: data.message || "Đăng nhập thành công",
+        userId: data.userId || 0,
+        fullName: data.fullName || "",
+        email: data.email || credentials.email,
+        role: data.role || "user"
+      };
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -235,6 +229,71 @@ class ApiService {
       );
     }
   }
+
+  /**
+   * Tạo nhóm chia sẻ xe mới
+   * Backend endpoint: POST /api/groups/create?userId={userId}
+   */
+  async createGroup(request: CreateGroupRequest, userId: number): Promise<CreateGroupResponse> {
+    const url = `${this.baseURL}/api/groups/create?userId=${userId}`;
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    };
+
+    try {
+      const response = await fetch(url, config);
+      
+      // Backend trả về String message
+      const message = await response.text();
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: message || `HTTP error! status: ${response.status}`
+        };
+      }
+
+      // Success - Backend trả về message
+      return {
+        success: true,
+        message: message || "Tạo nhóm thành công!"
+      };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new ApiError(
+          'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.',
+          0
+        );
+      }
+      
+      throw new ApiError(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      );
+    }
+  }
+}
+
+// Types for Create Group API
+export interface CreateGroupRequest {
+  vehicleId: number;
+  groupName: string;
+  description: string;
+  estimatedValue: number;
+  maxMembers: number;
+  minOwnershipPercentage: number;
+}
+
+export interface CreateGroupResponse {
+  success: boolean;
+  message: string;
 }
 
 // Create and export API service instance

@@ -1,353 +1,446 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Header from "@/components/Header/Header";
-import styles from "./page.module.css";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import styles from './dashboard.module.css';
+import Header from '@/components/Header/Header';
 
-// Dashboard Types
-type DashboardType = "consumer" | "provider" | "coowner";
+// Mock data
+const mockVehicles = [
+  {
+    id: 1,
+    amount: '28,572.00',
+    currency: 'VNĐ',
+    status: 'Active',
+    number: '****  ****  ****  2879',
+    type: 'Tesla Model 3',
+    brand: 'Mastercard',
+    color: 'master'
+  },
+  {
+    id: 2,
+    amount: '12,148.00',
+    currency: 'VNĐ',
+    status: 'Disabled',
+    number: '****  ****  ****  2879',
+    type: 'VinFast VF8',
+    brand: 'VISA',
+    color: 'visa'
+  },
+  {
+    id: 3,
+    amount: '58,629.00',
+    currency: 'VNĐ',
+    status: 'Disabled',
+    number: '****  ****  ****  2879',
+    type: 'BYD Atto 3',
+    brand: 'AMEX',
+    color: 'amex'
+  },
+];
 
-// Mock data for Data Consumer Dashboard
-const consumerData = {
-  totalPackages: 12,
-  totalDownloads: 156,
-  totalSpent: 2450000,
-  recentAnalytics: [
-    { label: "Hiệu suất pin (SoC)", value: "85%", trend: "+5%" },
-    { label: "Quãng đường TB/ngày", value: "45km", trend: "+12%" },
-    { label: "Tần suất sạc", value: "2.3 lần/ngày", trend: "-8%" },
-    { label: "CO2 tiết kiệm", value: "1.2 tấn", trend: "+15%" }
-  ],
-  aiInsights: [
-    "Xu hướng sử dụng xe tăng 15% vào cuối tuần",
-    "Dự báo nhu cầu sạc cao nhất vào 8-9h sáng",
-    "Gợi ý tối ưu lộ trình để tiết kiệm 20% năng lượng"
-  ],
-  recentPurchases: [
-    { name: "Tesla Model 3 - Hà Nội", date: "15/01/2025", amount: 500000 },
-    { name: "VinFast VF8 - TP.HCM", date: "10/01/2025", amount: 300000 },
-    { name: "BYD Atto 3 - Đà Nẵng", date: "05/01/2025", amount: 250000 }
-  ]
-};
+const mockTransactions = [
+  {
+    id: 'DEV12345',
+    customerName: 'Nguyễn Văn A',
+    email: 'nguyenvana@email.com',
+    date: '28 Dec 2025',
+    amount: '2,850,000',
+    status: 'Success',
+  },
+  {
+    id: 'DEV54321',
+    customerName: 'Trần Thị B',
+    email: 'tranthib@email.com',
+    date: '14 Feb 2025',
+    amount: '1,235,000',
+    status: 'Pending',
+  },
+  {
+    id: 'DEV67890',
+    customerName: 'Lê Văn C',
+    email: 'levanc@email.com',
+    date: '20 Jan 2025',
+    amount: '3,150,000',
+    status: 'Success',
+  },
+];
 
-// Mock data for Data Provider Dashboard
-const providerData = {
-  totalRevenue: 12500000,
-  totalDownloads: 1240,
-  totalPackages: 8,
-  monthlyRevenue: [
-    { month: "Tháng 1", revenue: 3200000, downloads: 320 },
-    { month: "Tháng 2", revenue: 2800000, downloads: 280 },
-    { month: "Tháng 3", revenue: 3500000, downloads: 350 },
-    { month: "Tháng 4", revenue: 3000000, downloads: 290 }
-  ],
-  packages: [
-    { name: "Tesla Model 3 - Hà Nội", status: "active", downloads: 450, revenue: 4500000 },
-    { name: "VinFast VF8 - TP.HCM", status: "pending", downloads: 0, revenue: 0 },
-    { name: "BYD Atto 3 - Đà Nẵng", status: "active", downloads: 320, revenue: 3200000 }
-  ]
-};
-
-// Co-owner data (some static, usage fetched from mockApi)
-const coownerStatic = {
-  totalGroups: 2,
-  totalOwnership: 35,
-  monthlyCost: 850000,
-  groupSummary: [
-    { name: "EV Shared Hanoi", ownership: 25, monthlyCost: 450000, usage: "Hàng ngày" },
-    { name: "Model 3 Weekend", ownership: 10, monthlyCost: 400000, usage: "Cuối tuần" }
-  ]
-};
+const chartData = Array.from({ length: 30 }, (_, i) => ({
+  day: i + 1,
+  income: Math.random() * 40000 + 20000,
+  expense: Math.random() * 30000 + 10000,
+}));
 
 export default function DashboardPage() {
-  const [activeDashboard, setActiveDashboard] = useState<DashboardType>("consumer");
-  const [usageHistory, setUsageHistory] = useState<any[]>([]);
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const [activeMenu, setActiveMenu] = useState('dashboard');
+  const [chartView, setChartView] = useState<'income' | 'expenses'>('income');
+  const [chartPeriod, setChartPeriod] = useState('monthly');
 
   useEffect(() => {
-    (async () => {
-      try {
-        const raw = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        const uid = raw?.id;
-        if (uid) {
-          const usages = await (await import('@/lib/mockApi')).default.getUsageHistory({ userId: uid });
-          setUsageHistory(usages || []);
-        }
-      } catch (e) { /* ignore */ }
-    })();
-  }, []);
+    if (!user) {
+      router.replace('/login');
+    }
+  }, [user, router]);
 
-  const handleNavClick = (index: number) => {
-    // Handle navigation if needed
-  };
-
-  const renderDataConsumerDashboard = () => (
-    <div className={styles.dashboardContent}>
-      <div className={styles.overview}>
-        <h2>Tổng quan</h2>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{consumerData.totalPackages}</div>
-            <div className={styles.statLabel}>Gói dữ liệu đã mua</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{consumerData.totalDownloads}</div>
-            <div className={styles.statLabel}>Lượt tải xuống</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{consumerData.totalSpent.toLocaleString()}đ</div>
-            <div className={styles.statLabel}>Tổng chi phí</div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.analytics}>
-        <h2>Phân tích & Báo cáo</h2>
-        <div className={styles.analyticsGrid}>
-          {consumerData.recentAnalytics.map((item, index) => (
-            <div key={index} className={styles.analyticsCard}>
-              <div className={styles.analyticsLabel}>{item.label}</div>
-              <div className={styles.analyticsValue}>{item.value}</div>
-              <div className={styles.analyticsTrend}>{item.trend}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.aiInsights}>
-        <h2>AI Gợi ý</h2>
-        <div className={styles.insightsList}>
-          {consumerData.aiInsights.map((insight, index) => (
-            <div key={index} className={styles.insightItem}>
-              <span className={styles.insightIcon}>🤖</span>
-              <span>{insight}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.dataManagement}>
-        <h2>Quản lý dữ liệu</h2>
-        <div className={styles.purchasesList}>
-          <h3>Lịch sử mua hàng gần đây</h3>
-          {consumerData.recentPurchases.map((purchase, index) => (
-            <div key={index} className={styles.purchaseItem}>
-              <div className={styles.purchaseInfo}>
-                <div className={styles.purchaseName}>{purchase.name}</div>
-                <div className={styles.purchaseDate}>{purchase.date}</div>
-              </div>
-              <div className={styles.purchaseAmount}>{purchase.amount.toLocaleString()}đ</div>
-            </div>
-          ))}
-        </div>
-        <div className={styles.apiSection}>
-          <h3>API Key Management</h3>
-          <div className={styles.apiKey}>
-            <span>API Key: ********************</span>
-            <button className={styles.btnSecondary}>Regenerate</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderDataProviderDashboard = () => (
-    <div className={styles.dashboardContent}>
-      <div className={styles.overview}>
-        <h2>Tổng quan</h2>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{providerData.totalRevenue.toLocaleString()}đ</div>
-            <div className={styles.statLabel}>Tổng doanh thu</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{providerData.totalDownloads}</div>
-            <div className={styles.statLabel}>Lượt tải xuống</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{providerData.totalPackages}</div>
-            <div className={styles.statLabel}>Gói dữ liệu</div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.revenueReport}>
-        <h2>Báo cáo tài chính</h2>
-        <div className={styles.revenueChart}>
-          {providerData.monthlyRevenue.map((month, index) => (
-            <div key={index} className={styles.revenueItem}>
-              <div className={styles.revenueMonth}>{month.month}</div>
-              <div className={styles.revenueAmount}>{month.revenue.toLocaleString()}đ</div>
-              <div className={styles.revenueDownloads}>{month.downloads} lượt tải</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.dataManagement}>
-        <h2>Quản lý dữ liệu</h2>
-        <div className={styles.packagesList}>
-          {providerData.packages.map((pkg, index) => (
-            <div key={index} className={styles.packageItem}>
-              <div className={styles.packageInfo}>
-                <div className={styles.packageName}>{pkg.name}</div>
-                <div className={`${styles.packageStatus} ${styles[pkg.status]}`}>
-                  {pkg.status === "active" ? "Hoạt động" : "Chờ duyệt"}
-                </div>
-              </div>
-              <div className={styles.packageStats}>
-                <div>{pkg.downloads} lượt tải</div>
-                <div>{pkg.revenue.toLocaleString()}đ</div>
-              </div>
-              <div className={styles.packageActions}>
-                <button className={styles.btnSecondary}>Chỉnh sửa</button>
-                <button className={styles.btnPrimary}>Tải lên mới</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.userAnalytics}>
-        <h2>Phân tích người dùng</h2>
-        <div className={styles.analyticsGrid}>
-          <div className={styles.analyticsCard}>
-            <div className={styles.analyticsLabel}>Người dùng tích cực</div>
-            <div className={styles.analyticsValue}>156</div>
-          </div>
-          <div className={styles.analyticsCard}>
-            <div className={styles.analyticsLabel}>Tỷ lệ quay lại</div>
-            <div className={styles.analyticsValue}>78%</div>
-          </div>
-          <div className={styles.analyticsCard}>
-            <div className={styles.analyticsLabel}>Đánh giá trung bình</div>
-            <div className={styles.analyticsValue}>4.7/5</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCoownerDashboard = () => (
-    <div className={styles.dashboardContent}>
-      <div className={styles.overview}>
-        <h2>Tổng quan</h2>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerStatic.totalGroups}</div>
-            <div className={styles.statLabel}>Nhóm tham gia</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerStatic.totalOwnership}%</div>
-            <div className={styles.statLabel}>Tổng tỷ lệ sở hữu</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statNumber}>{coownerStatic.monthlyCost.toLocaleString()}đ</div>
-            <div className={styles.statLabel}>Chi phí tháng này</div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.usageHistory}>
-        <h2>Lịch sử sử dụng</h2>
-        <div className={styles.historyList}>
-          {usageHistory.map((usage: any, index: number) => (
-            <div key={usage.id || index} className={styles.historyItem}>
-              <div className={styles.historyDate}>{new Date(usage.ts).toLocaleString()}</div>
-              <div className={styles.historyDetails}>
-                <div className={styles.historyVehicle}>{usage.bookingId}</div>
-                <div className={styles.historyDistance}>{usage.usage.distanceKm ?? '—'} km</div>
-              </div>
-              <div className={styles.historyCost}>{usage.usage.cost ? usage.usage.cost.toLocaleString() + 'đ' : '—'}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.personalAnalysis}>
-        <h2>Phân tích cá nhân</h2>
-        <div className={styles.analysisGrid}>
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisLabel}>Sử dụng vs Sở hữu</div>
-            <div className={styles.analysisValue}>Cân bằng</div>
-            <div className={styles.analysisNote}>Tỷ lệ sử dụng phù hợp với tỷ lệ sở hữu</div>
-          </div>
-          <div className={styles.analysisCard}>
-            <div className={styles.analysisLabel}>Hiệu quả chi phí</div>
-            <div className={styles.analysisValue}>Tốt</div>
-            <div className={styles.analysisNote}>Tiết kiệm 15% so với thuê xe riêng</div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.costSummary}>
-        <h2>Tổng kết chi phí</h2>
-        <div className={styles.costBreakdown}>
-          {coownerStatic.groupSummary.map((group: any, index: number) => (
-            <div key={index} className={styles.costItem}>
-              <div className={styles.costGroupName}>{group.name}</div>
-              <div className={styles.costDetails}>
-                <div>Sở hữu: {group.ownership}%</div>
-                <div>Chi phí: {group.monthlyCost.toLocaleString()}đ</div>
-                <div>Sử dụng: {group.usage}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.contractsGroups}>
-        <h2>Hợp đồng & Nhóm</h2>
-        <div className={styles.contractsList}>
-          <div className={styles.contractItem}>
-            <div className={styles.contractName}>Hợp đồng EV Shared Hanoi</div>
-            <div className={styles.contractStatus}>Hoạt động</div>
-            <div className={styles.contractExpiry}>Hết hạn: 15/12/2025</div>
-          </div>
-          <div className={styles.contractItem}>
-            <div className={styles.contractName}>Hợp đồng Model 3 Weekend</div>
-            <div className={styles.contractStatus}>Hoạt động</div>
-            <div className={styles.contractExpiry}>Hết hạn: 20/11/2025</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  if (!user) return null;
 
   return (
-    <>
-      <Header headerHidden={false} currentSection={3} goToSection={handleNavClick} />
-      <main className={styles.container}>
-        <div className={styles.header}>
-          <h1>Dashboard</h1>
-          <div className={styles.dashboardTabs}>
-            <button
-              className={`${styles.tab} ${activeDashboard === "consumer" ? styles.active : ""}`}
-              onClick={() => setActiveDashboard("consumer")}
-            >
-              <span>👤</span>
-              <span>Người dùng dữ liệu</span>
-            </button>
-            <button
-              className={`${styles.tab} ${activeDashboard === "provider" ? styles.active : ""}`}
-              onClick={() => setActiveDashboard("provider")}
-            >
-              <span>🏢</span>
-              <span>Nhà cung cấp</span>
-            </button>
-            <button
-              className={`${styles.tab} ${activeDashboard === "coowner" ? styles.active : ""}`}
-              onClick={() => setActiveDashboard("coowner")}
-            >
-              <span>🚗</span>
-              <span>Đồng sở hữu</span>
-            </button>
+    <div className={styles.container}>
+      {/* Sidebar */}
+      <aside className={styles.sidebar}>
+        <div className={styles.logo}>
+          <div className={styles.logoIcon}>⚡</div>
+          <div className={styles.logoText}>
+            <div className={styles.logoTitle}>EV Share</div>
+            <div className={styles.logoSubtitle}>Co-ownership App</div>
           </div>
         </div>
 
-        {activeDashboard === "consumer" && renderDataConsumerDashboard()}
-        {activeDashboard === "provider" && renderDataProviderDashboard()}
-        {activeDashboard === "coowner" && renderCoownerDashboard()}
+        <div className={styles.menuSection}>
+          <div className={styles.menuLabel}>MENU</div>
+          <nav className={styles.menuItems}>
+            <a
+              href="#"
+              className={`${styles.menuItem} ${activeMenu === 'dashboard' ? styles.menuItemActive : ''}`}
+              onClick={() => setActiveMenu('dashboard')}
+            >
+              <span className={styles.menuItemIcon}>📊</span>
+              <span>Dashboard</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('transactions')}
+            >
+              <span className={styles.menuItemIcon}>💳</span>
+              <span>Giao dịch</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('autopay')}
+            >
+              <span className={styles.menuItemIcon}>🔄</span>
+              <span>Thanh toán tự động</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('goals')}
+            >
+              <span className={styles.menuItemIcon}>🎯</span>
+              <span>Mục tiêu</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('settings')}
+            >
+              <span className={styles.menuItemIcon}>⚙️</span>
+              <span>Cài đặt</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('message')}
+            >
+              <span className={styles.menuItemIcon}>✉️</span>
+              <span>Tin nhắn</span>
+              <span className={styles.menuItemBadge}>2</span>
+            </a>
+            <a
+              href="#"
+              className={styles.menuItem}
+              onClick={() => setActiveMenu('investment')}
+            >
+              <span className={styles.menuItemIcon}>📈</span>
+              <span>Đầu tư</span>
+            </a>
+          </nav>
+        </div>
+
+        <div className={styles.menuSection}>
+          <div className={styles.menuLabel}>SUPPORT</div>
+          <nav className={styles.menuItems}>
+            <a href="#" className={styles.menuItem}>
+              <span className={styles.menuItemIcon}>❓</span>
+              <span>Hỗ trợ</span>
+            </a>
+            <a href="#" className={styles.menuItem} onClick={logout}>
+              <span className={styles.menuItemIcon}>🚪</span>
+              <span>Đăng xuất</span>
+            </a>
+          </nav>
+        </div>
+
+        <div className={styles.proSection}>
+          <div className={styles.proTitle}>
+            <span>👑</span>
+            <span>PRO</span>
+          </div>
+          <div className={styles.proText}>
+            Nhắc nhở thoát dự án, tìm kiếm nâng cao và nhiều hơn nữa
+          </div>
+          <button className={styles.proButton}>Nâng cấp Pro</button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className={styles.mainContent}>
+        {/* Shared Header component (visible) */}
+        <Header headerHidden={false} currentSection={2} />
+
+        {/* KPI Cards */}
+        <div className={styles.kpiRow}>
+          <div className={styles.kpiCard}>
+            <div className={styles.kpiHeader}>
+              <div>
+                <div className={styles.kpiTitle}>Tổng số dư</div>
+                <div className={styles.kpiValue}>82,620</div>
+                <div className={styles.kpiChange + ' ' + styles.kpiChangeUp}>
+                  <span>↑</span>
+                  <span>4% so với tháng trước</span>
+                </div>
+              </div>
+              <div>
+                <div className={styles.kpiIconWrapper}>💰</div>
+                <button className={styles.kpiMenu}>⋯</button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.kpiCard}>
+            <div className={styles.kpiHeader}>
+              <div>
+                <div className={styles.kpiTitle}>Tổng chi tiêu</div>
+                <div className={styles.kpiValue}>54,870</div>
+                <div className={styles.kpiChange + ' ' + styles.kpiChangeDown}>
+                  <span>↓</span>
+                  <span>3% so với tháng trước</span>
+                </div>
+              </div>
+              <div>
+                <div className={styles.kpiIconWrapper}>💳</div>
+                <button className={styles.kpiMenu}>⋯</button>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.cardsSection} style={{ gridColumn: 'span 1' }}>
+            <div className={styles.cardsSectionHeader}>
+              <div className={styles.cardsSectionTitle}>Xe của tôi</div>
+              <button className={styles.addButton}>+ Thêm xe mới</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Vehicles Cards */}
+        <div className={styles.cardsSection}>
+          <div className={styles.cardsList}>
+            {mockVehicles.map((vehicle) => (
+              <div
+                key={vehicle.id}
+                className={`${styles.vehicleCard} ${styles['vehicleCard' + vehicle.brand]}`}
+              >
+                <div className={styles.vehicleCardHeader}>
+                  <div>
+                    <div className={styles.vehicleCardCurrency}>{vehicle.currency}</div>
+                    <div className={styles.vehicleCardAmount}>{vehicle.amount}</div>
+                  </div>
+                  <div
+                    className={`${styles.vehicleCardStatus} ${
+                      vehicle.status === 'Disabled' ? styles.vehicleCardStatusDisabled : ''
+                    }`}
+                  >
+                    {vehicle.status}
+                  </div>
+                </div>
+                <div className={styles.vehicleCardNumber}>{vehicle.number}</div>
+                <div className={styles.vehicleCardFooter}>
+                  <div className={styles.vehicleCardBrand}>{vehicle.brand}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Chart Section */}
+        <div className={styles.chartSection}>
+          <div className={styles.chartHeader}>
+            <div className={styles.chartTitle}>Tổng quan giám sát</div>
+            <div className={styles.chartToggle}>
+              <button
+                className={`${styles.chartToggleButton} ${
+                  chartView === 'income' ? styles.chartToggleButtonActive : ''
+                }`}
+                onClick={() => setChartView('income')}
+              >
+                Thu nhập
+              </button>
+              <button
+                className={`${styles.chartToggleButton} ${
+                  chartView === 'expenses' ? styles.chartToggleButtonActive : ''
+                }`}
+                onClick={() => setChartView('expenses')}
+              >
+                Chi tiêu
+              </button>
+              <select className={styles.chartSelect} value={chartPeriod} onChange={(e) => setChartPeriod(e.target.value)}>
+                <option value="weekly">Hàng tuần</option>
+                <option value="monthly">Hàng tháng</option>
+                <option value="yearly">Hàng năm</option>
+              </select>
+            </div>
+          </div>
+          <div style={{ height: '250px', position: 'relative' }}>
+            <SimpleChart data={chartData} activeView={chartView} />
+          </div>
+        </div>
+
+        {/* Transactions Table */}
+        <div className={styles.transactionsSection}>
+          <div className={styles.transactionsHeader}>
+            <div className={styles.transactionsTitle}>Giao dịch gần đây</div>
+            <div className={styles.transactionsActions}>
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                className={styles.searchInput}
+              />
+              <button className={styles.filterButton}>
+                <span>⚙️</span>
+                <span>Lọc</span>
+              </button>
+            </div>
+          </div>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Deal ID</th>
+                <th>Tên khách hàng</th>
+                <th>Email khách hàng</th>
+                <th>Ngày</th>
+                <th>Số tiền</th>
+                <th>Trạng thái giao dịch</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockTransactions.map((transaction) => (
+                <tr key={transaction.id}>
+                  <td>{transaction.id}</td>
+                  <td>
+                    <div className={styles.userCell}>
+                      <div className={styles.userAvatar} style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                        {transaction.customerName[0]}
+                      </div>
+                      <span>{transaction.customerName}</span>
+                    </div>
+                  </td>
+                  <td>{transaction.email}</td>
+                  <td>{transaction.date}</td>
+                  <td>{transaction.amount} VNĐ</td>
+                  <td>
+                    <span
+                      className={`${styles.statusBadge} ${
+                        transaction.status === 'Success'
+                          ? styles.statusSuccess
+                          : styles.statusPending
+                      }`}
+                    >
+                      {transaction.status}
+                    </span>
+                  </td>
+                  <td>
+                    <button className={styles.actionButton}>⋯</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </main>
-    </>
+    </div>
+  );
+}
+
+// Simple Chart Component
+function SimpleChart({ data, activeView }: { data: any[]; activeView: 'income' | 'expenses' }) {
+  const maxValue = Math.max(
+    ...data.map((d) => (activeView === 'income' ? d.income : d.expense))
+  );
+  const width = 800;
+  const height = 200;
+  const padding = 40;
+
+  const points = data.slice(0, 12).map((d, i) => {
+    const value = activeView === 'income' ? d.income : d.expense;
+    return {
+      x: padding + (i / 11) * (width - padding * 2),
+      y: height - padding - ((value / maxValue) * (height - padding * 2)),
+      value: value,
+    };
+  });
+
+  const linePath = points
+    .map((p, i) => {
+      if (i === 0) return `M ${p.x},${p.y}`;
+      const prev = points[i - 1];
+      const cx = (prev.x + p.x) / 2;
+      return ` Q ${prev.x},${prev.y} ${cx},${(prev.y + p.y) / 2} T ${p.x},${p.y}`;
+    })
+    .join('');
+
+  const areaPath = `${linePath} L ${points[points.length - 1].x},${height - padding} L ${padding},${height - padding} Z`;
+
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ width: '100%', height: '100%' }}
+    >
+      <defs>
+        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#667eea" />
+          <stop offset="100%" stopColor="#764ba2" />
+        </linearGradient>
+        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#667eea" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#764ba2" stopOpacity="0.05" />
+        </linearGradient>
+      </defs>
+
+      {/* Area */}
+      <path d={areaPath} fill="url(#areaGradient)" />
+
+      {/* Line */}
+      <path
+        d={linePath}
+        fill="none"
+        stroke="url(#lineGradient)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Points */}
+      {points.map((p, i) => (
+        <circle
+          key={i}
+          cx={p.x}
+          cy={p.y}
+          r="5"
+          fill="url(#lineGradient)"
+          style={{ cursor: 'pointer' }}
+        >
+          <title>
+            {activeView === 'income' ? 'Thu nhập' : 'Chi tiêu'}: {p.value.toFixed(0)} VNĐ
+          </title>
+        </circle>
+      ))}
+    </svg>
   );
 }

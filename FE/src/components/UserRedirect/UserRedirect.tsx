@@ -47,16 +47,20 @@ export default function UserRedirect({
       if (isPublic) return;
     }
 
-    // 1) Admin users: restrict to /admin only
-    if (authUser && (authUser.role === 'admin' || authUser.role === 'ADMIN')) {
-      if (!currentPath.startsWith('/admin')) {
-        router.replace('/admin');
-        return;
+    // 1) Admin users: allow /admin paths, but don't force them away from public pages on first load
+    if (authUser && authUser.role?.toLowerCase() === 'admin') {
+      // Allow admins to stay on admin pages
+      if (currentPath.startsWith('/admin')) {
+        return; // Admin is on admin page, all good
+      }
+      // Allow admins to access public pages like home
+      if (isPublic) {
+        return; // Let them browse public pages
       }
     }
 
     // 2) Non-admin users: gently prevent entering /admin (AdminLayout also guards)
-    if (authUser && authUser.role !== 'admin' && currentPath.startsWith('/admin')) {
+    if (authUser && authUser.role?.toLowerCase() !== 'admin' && currentPath.startsWith('/admin')) {
       router.replace('/dashboard');
       return;
     }

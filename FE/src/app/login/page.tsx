@@ -54,11 +54,20 @@ export default function LoginPage() {
     try {
       const result = await login({ email: signInEmail, password: signInPassword });
       
+      console.log('Login result:', result); // Debug log
+      
       if (!result.success) {
-        setSignInError(result.message);
+        // Ensure error message is a string
+        const errorMsg = typeof result.message === 'string' 
+          ? result.message 
+          : JSON.stringify(result.message);
+        setSignInError(errorMsg);
       }
+      // If success, AuthContext will handle redirect automatically
     } catch (error) {
-      setSignInError("Đã xảy ra lỗi. Vui lòng thử lại.");
+      console.error('Login exception:', error); // Debug log
+      const errorMsg = error instanceof Error ? error.message : "Đã xảy ra lỗi. Vui lòng thử lại.";
+      setSignInError(errorMsg);
     } finally {
       setIsSignInLoading(false);
     }
@@ -254,11 +263,17 @@ export default function LoginPage() {
     setSignUpError("");
   };
 
+  console.log('isSignUpMode:', isSignUpMode); // Debug log
+  
   return (
     <div className={styles.mainContainer}>
-      <div className={`${styles.container} ${isSignUpMode ? styles.signUpMode : ''}`}>
+      <div className={`${styles.container} ${isSignUpMode ? styles.signUpMode : ''}`} style={{
+        transition: 'all 1s cubic-bezier(0.25, 0.8, 0.25, 1)'
+      }}>
         {/* Sign Up Form */}
-        <div className={`${styles.formContainer} ${styles.signUpContainer}`}>
+        <div className={`${styles.formContainer} ${styles.signUpContainer}`} style={{
+          transition: 'all 1s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }}>
           {signUpStep === 1 ? (
             <form onSubmit={handleSignUpStep1} className={styles.form}>
               <h1 className={styles.formTitle}>Create Account</h1>
@@ -603,7 +618,9 @@ export default function LoginPage() {
         </div>
 
         {/* Sign In Form */}
-        <div className={`${styles.formContainer} ${styles.signInContainer}`}>
+        <div className={`${styles.formContainer} ${styles.signInContainer}`} style={{
+          transition: 'all 1s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }}>
           <form onSubmit={handleSignIn} className={styles.form}>
             <h1 className={styles.formTitle}>Sign in to EV System</h1>
             
@@ -653,8 +670,19 @@ export default function LoginPage() {
         </div>
 
         {/* Overlay Container */}
-        <div className={styles.overlayContainer}>
-          <div className={styles.overlay}>
+        <div className={styles.overlayContainer} style={{
+          transition: 'transform 1s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }}>
+          <div className={styles.overlay} style={{
+            transition: 'transform 1s cubic-bezier(0.25, 0.8, 0.25, 1)'
+          }}>
+            {/* Floating Particles */}
+            <div className={styles.particleContainer}>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className={`${styles.particle} ${styles[`particle${i + 1}`]}`}></div>
+              ))}
+            </div>
+            
             <div className={`${styles.overlayPanel} ${styles.overlayLeft}`}>
               <h1 className={styles.overlayTitle}>Welcome Back!</h1>
               <p className={styles.overlayText}>

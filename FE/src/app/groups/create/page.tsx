@@ -6,6 +6,7 @@ import Link from "next/link";
 import styles from "./page.module.css";
 import { mockApi } from "@/lib/mockApi";
 import { useUserGroups } from "@/hooks/useUserGroups";
+import { apiService } from "@/lib/api";
 
 export default function CreateGroupPage() {
   const router = useRouter();
@@ -54,33 +55,92 @@ export default function CreateGroupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return;
+    console.log("🚀 Form submitted!");
+    
+    if (submitting) {
+      console.log("⏳ Already submitting...");
+      return;
+    }
+    
+    // Validation
+    console.log("📋 Validating fields:", {
+      vehicleId,
+      groupName,
+      description,
+      estimatedValue
+    });
+    
+    if (!vehicleId || !groupName || !description || !estimatedValue) {
+      console.error("❌ Validation failed - missing required fields");
+      setError("Vui lòng điền đầy đủ thông tin: Tên nhóm, Mô tả, ID Xe và Giá trị ước tính");
+      alert("⚠️ Vui lòng điền đầy đủ thông tin bắt buộc!");
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
+    console.log("✅ Validation passed, starting submission...");
+    
     try {
-      const adminId = user?.id ?? "user-admin";
-      const adminName = user?.fullName ?? "System Admin";
-      const group = await mockApi.createGroup({
-        vehicleName,
-        vehicleModel,
-        vehicleId: vehicleId ? Number(vehicleId) : undefined,
-        region,
-        purpose,
-        maxMembers,
-        priceRange,
-        groupName: groupName || vehicleName,
-        description,
-        approvalStatus: 'pending',
-        estimatedValue: estimatedValue ? Number(estimatedValue) : undefined,
-        status,
-        adminId,
-        adminName
-      });
-      router.push(`/groups/${group.id}`);
+      // Lấy userId từ localStorage
+      let userId: number;
+      const storedUser = localStorage.getItem('currentUser');
+      console.log("👤 Current user from localStorage:", storedUser);
+      
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        userId = parsedUser.userId || parsedUser.id;
+        console.log("✅ User ID found:", userId);
+      } else if (user?.id) {
+        userId = typeof user.id === 'number' ? user.id : parseInt(user.id);
+        console.log("✅ User ID from context:", userId);
+      } else {
+        console.error("❌ No user ID found!");
+        setError("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+        alert("⚠️ Vui lòng đăng nhập lại!");
+        setSubmitting(false);
+        return;
+      }
+
+      // Gọi API thực từ backend
+      const requestData = {
+        vehicleId: Number.parseInt(String(vehicleId) || '0'),
+        groupName: groupName,
+        description: description,
+        estimatedValue: Number.parseFloat(String(estimatedValue) || '0'),
+        maxMembers: Number(maxMembers || 0),
+        minOwnershipPercentage: Number(selfOwnershipPct || 0)
+      };
+
+      console.log("📡 Calling API with data:", requestData, "userId:", userId);
+
+      // Call backend via apiService
+      const response = await apiService.createGroup(requestData, userId);
+      console.log("📥 API Response:", response);
+
+      // Kiểm tra message để xác định thực sự thành công hay không
+      const isActualSuccess = response.success && 
+        !response.message.includes("thuộc nhóm khác") &&
+        !response.message.includes("chờ duyệt") &&
+        !response.message.includes("Lỗi");
+      
+      if (isActualSuccess) {
+        alert(response.message || "Tạo nhóm thành công!");
+        console.log("✅ Group created successfully!");
+        router.push('/groups');
+      } else {
+        console.error("❌ API returned error:", response.message);
+        setError(response.message || "Không tạo được nhóm");
+        alert("❌ " + response.message);
+      }
     } catch (err: any) {
-      setError("Không tạo được nhóm. Vui lòng thử lại.");
+      console.error("💥 Exception caught:", err);
+      const errorMsg = err.message || "Không tạo được nhóm. Vui lòng thử lại.";
+      setError(errorMsg);
+      alert("❌ " + errorMsg);
     } finally {
       setSubmitting(false);
+      console.log("🏁 Submission finished");
     }
   };
 
@@ -129,8 +189,20 @@ export default function CreateGroupPage() {
           <div className={styles.form}>
             <p className={styles.subtitle}>Bước 2: Chọn xe & Tỷ lệ</p>
             <div className={styles.fieldRow}>
+              <label className={styles.label}>ID Xe <span className={styles.required}>*</span></label>
+              <input 
+                className={styles.input} 
+                type="number"
+                value={vehicleId} 
+                onChange={(e)=>setVehicleId(e.target.value)} 
+                placeholder="Nhập ID xe (bắt buộc)" 
+                required 
+              />
+              <small style={{color: '#64748b', fontSize: '12px'}}>ID xe từ hệ thống quản lý xe của bạn</small>
+            </div>
+            <div className={styles.fieldRow}>
               <label className={styles.label}>Tên xe</label>
-              <input className={styles.input} value={vehicleName} onChange={(e)=>setVehicleName(e.target.value)} placeholder="Ví dụ: Tesla Model 3" required />
+              <input className={styles.input} value={vehicleName} onChange={(e)=>setVehicleName(e.target.value)} placeholder="Ví dụ: Tesla Model 3" />
             </div>
             <div className={styles.fieldRow}>
               <label className={styles.label}>Phiên bản</label>
@@ -206,20 +278,32 @@ export default function CreateGroupPage() {
             <p className={styles.subtitle}>Bước 3: Xác nhận & Hoàn tất</p>
             <div className={styles.summaryGrid}>
               <div><strong>Tên nhóm:</strong> {groupName || '(chưa đặt)'}</div>
-              <div><strong>Xe:</strong> {vehicleName} {vehicleModel}</div>
-              <div><strong>Khu vực:</strong> {region}</div>
+              <div><strong>ID Xe:</strong> {vehicleId || '(chưa có)'}</div>
+              <div><strong>Xe:</strong> {vehicleName || '—'} {vehicleModel}</div>
+              <div><strong>Khu vực:</strong> {region || '—'}</div>
               <div><strong>Tối đa:</strong> {maxMembers} thành viên</div>
               <div><strong>Mục đích:</strong> {purpose || '—'}</div>
               <div><strong>Mô tả:</strong> {description || '—'}</div>
-              <div><strong>Giá trị ước tính:</strong> {estimatedValue || '—'}</div>
+              <div><strong>Giá trị ước tính:</strong> {estimatedValue ? `${parseFloat(estimatedValue).toLocaleString()} VND` : '—'}</div>
               <div><strong>Tỷ lệ của bạn:</strong> {selfOwnershipPct}%</div>
               <div><strong>Thành viên mời:</strong> {memberEmails.length ? memberEmails.join(', ') : '—'}</div>
-              <div><strong>Trạng thái khi tạo:</strong> Chờ xét duyệt</div>
+              <div><strong>Trạng thái khi tạo:</strong> Chờ Admin xét duyệt</div>
             </div>
+            {(!vehicleId || !groupName || !description || !estimatedValue) && (
+              <div style={{padding: '12px', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '8px', marginTop: '16px'}}>
+                <strong style={{color: '#92400e'}}>⚠️ Thiếu thông tin bắt buộc:</strong>
+                <ul style={{margin: '8px 0 0 20px', color: '#92400e'}}>
+                  {!vehicleId && <li>ID Xe</li>}
+                  {!groupName && <li>Tên nhóm</li>}
+                  {!description && <li>Mô tả</li>}
+                  {!estimatedValue && <li>Giá trị ước tính</li>}
+                </ul>
+              </div>
+            )}
             <div className={styles.actions}>
               <button type="button" className={styles.secondaryBtn} onClick={()=>setStep(2)}>Quay lại</button>
               <button type="submit" className={styles.primaryBtn} disabled={submitting}>
-                {submitting ? "Đang gửi yêu cầu…" : "Xong"}
+                {submitting ? "Đang gửi yêu cầu…" : "Tạo nhóm"}
               </button>
             </div>
           </form>

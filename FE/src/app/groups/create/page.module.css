@@ -90,4 +90,10 @@
 .donutLabel { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 700; color: #111827; }
 .summaryBox { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; color: #374151; }
 
+/* Required field indicator - red asterisk */
+.required {
+  color: #ef4444 !important;
+  font-size: 16px;
+  font-weight: 700;
+}
 

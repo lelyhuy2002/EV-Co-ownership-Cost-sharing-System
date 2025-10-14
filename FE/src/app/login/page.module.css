@@ -21,6 +21,59 @@
   animation: containerFadeIn 0.8s ease-out;
 }
 
+/* Dynamic shadow effect during transition */
+.container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.1) 0%, transparent 70%);
+  transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.container.signUpMode::after {
+  left: 75%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.15) 0%, transparent 70%);
+}
+
+/* Glass morphism effect during transition */
+.container.signUpMode::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    rgba(82, 183, 136, 0.3) 0%, 
+    rgba(82, 183, 136, 0.8) 50%, 
+    rgba(82, 183, 136, 0.3) 100%);
+  box-shadow: 0 0 20px rgba(82, 183, 136, 0.5);
+  animation: glassLine 1s ease-out;
+  z-index: 1000;
+}
+
+@keyframes glassLine {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+    box-shadow: 0 0 30px rgba(82, 183, 136, 0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+
 @keyframes containerFadeIn {
   from {
     opacity: 0;
@@ -32,47 +85,111 @@
   }
 }
 
-/* Form Containers */
+/* Form Containers - Enhanced Sliding Animation */
 .formContainer {
   position: absolute;
   top: 0;
   height: 100%;
-  transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .signInContainer {
   left: 0;
   width: 50%;
-  z-index: 2;
+  z-index: 10;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
 }
 
 .container.signUpMode .signInContainer {
-  transform: translateX(100%);
+  opacity: 0.3 !important;
+  z-index: 1 !important;
+  transform: translateX(0) scale(0.95) !important;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4) !important;
+  filter: blur(2px) !important;
+  animation: formSlideOut 1s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .signUpContainer {
-  left: 0;
+  left: 50%;
   width: 50%;
-  opacity: 0;
+  opacity: 0.3;
   z-index: 1;
+  transform: translateX(0) scale(0.95);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
+  filter: blur(2px);
 }
 
 .container.signUpMode .signUpContainer {
-  transform: translateX(100%);
-  opacity: 1;
-  z-index: 5;
-  animation: show 1.2s;
+  opacity: 1 !important;
+  z-index: 10 !important;
+  transform: translateX(0) scale(1) !important;
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1) !important;
+  filter: blur(0px) !important;
+  animation: formSlideIn 1s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-@keyframes show {
-  0%, 49.99% {
-    opacity: 0;
-    z-index: 1;
+@keyframes formSlideIn {
+  0% {
+    opacity: 0.3;
+    transform: translateX(0) scale(0.95);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
+    filter: blur(2px);
   }
-  50%, 100% {
+  50% {
+    opacity: 0.7;
+    transform: translateX(0) scale(0.98);
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+    filter: blur(1px);
+  }
+  100% {
     opacity: 1;
-    z-index: 5;
+    transform: translateX(0) scale(1);
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes formSlideOut {
+  0% {
+    opacity: 1;
+    z-index: 10;
+    transform: translateX(0) scale(1);
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(0) scale(0.98);
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0.3;
+    z-index: 1;
+    transform: translateX(0) scale(0.95);
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.4);
+    filter: blur(2px);
+  }
+}
+
+/* Smooth Glass Effect */
+@keyframes glassSlide {
+  0% {
+    backdrop-filter: blur(0px) brightness(1);
+    background: rgba(255, 255, 255, 1);
+  }
+  50% {
+    backdrop-filter: blur(2px) brightness(0.98);
+    background: rgba(255, 255, 255, 0.95);
+  }
+  100% {
+    backdrop-filter: blur(0px) brightness(1);
+    background: rgba(255, 255, 255, 1);
   }
 }
 
@@ -88,6 +205,41 @@
   max-height: 600px;
   text-align: center;
   overflow-y: auto;
+  animation: glassSlide 1s ease-out;
+  backdrop-filter: blur(10px);
+  border-radius: 0 20px 20px 0;
+  transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+}
+
+.form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(82, 183, 136, 0.05) 50%, transparent 70%);
+  opacity: 0;
+  transition: opacity 1s ease;
+  pointer-events: none;
+}
+
+.signUpContainer .form::before,
+.container.signUpMode .signInContainer .form::before {
+  opacity: 1;
+  animation: shimmerEffect 2s ease-in-out infinite;
+}
+
+@keyframes shimmerEffect {
+  0%, 100% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%) skewX(-15deg);
+    opacity: 0.6;
+  }
 }
 
 /* Sign Up form specific styling */
@@ -667,7 +819,7 @@
   margin-top: 0;
 }
 
-/* Overlay Container */
+/* Overlay Container - Enhanced Sliding */
 .overlayContainer {
   position: absolute;
   top: 0;
@@ -675,13 +827,17 @@
   width: 50%;
   height: 100%;
   overflow: hidden;
-  transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
   z-index: 100;
-  will-change: transform;
+  will-change: transform, opacity;
+  perspective: 1000px;
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .container.signUpMode .overlayContainer {
-  transform: translateX(-100%);
+  transform: translateX(-100%) !important;
+  opacity: 0.8 !important;
 }
 
 .overlay {
@@ -695,9 +851,10 @@
   height: 100%;
   width: 200%;
   transform: translateX(0);
-  transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   will-change: transform;
+  backdrop-filter: blur(20px);
 }
 
 .overlay::before {
@@ -723,7 +880,9 @@
 }
 
 .container.signUpMode .overlay {
-  transform: translateX(50%);
+  transform: translateX(50%) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(25px) !important;
 }
 
 .overlayPanel {
@@ -737,27 +896,32 @@
   top: 0;
   height: 100%;
   width: 50%;
-  transform: translateX(0);
-  transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 1s ease;
+  transform: translateX(0) rotateY(0deg);
+  transition: transform 1s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.8s ease;
   z-index: 1;
   will-change: transform, opacity;
+  backdrop-filter: blur(10px);
 }
 
 .overlayLeft {
-  transform: translateX(-20%);
+  transform: translateX(-20%) rotateY(3deg) scale(0.98);
+  opacity: 0.9;
 }
 
 .container.signUpMode .overlayLeft {
-  transform: translateX(0);
+  transform: translateX(0) rotateY(0deg) scale(1);
+  opacity: 1;
 }
 
 .overlayRight {
   right: 0;
-  transform: translateX(0);
+  transform: translateX(0) rotateY(0deg) scale(1);
+  opacity: 1;
 }
 
 .container.signUpMode .overlayRight {
-  transform: translateX(20%);
+  transform: translateX(20%) rotateY(-3deg) scale(0.98);
+  opacity: 0.9;
 }
 
 .overlayTitle {
@@ -787,7 +951,7 @@
   animation: fadeInUp 0.8s ease-out 0.5s both;
 }
 
-/* Ghost Button */
+/* Ghost Button - Enhanced */
 .ghostButton {
   border-radius: 20px;
   border: 2px solid #FFFFFF;
@@ -798,16 +962,35 @@
   padding: 12px 45px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   animation: fadeInUp 0.8s ease-out 0.7s both;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.ghostButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.ghostButton:hover::before {
+  left: 100%;
 }
 
 .ghostButton:hover {
   background-color: #FFFFFF;
   color: #52B788;
-  transform: scale(1.05);
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 .ghostButton:active {
@@ -824,15 +1007,22 @@
   
   .formContainer {
     width: 100% !important;
+    transition: all 1s cubic-bezier(0.25, 0.8, 0.25, 1);
   }
   
   .signInContainer,
   .signUpContainer {
     width: 100%;
+    box-shadow: none;
   }
   
   .container.signUpMode .signInContainer {
-    transform: translateX(-100%);
+    transform: translateX(-100%) scale(0.95);
+    opacity: 0;
+  }
+  
+  .container.signUpMode .signUpContainer {
+    transform: translateX(0) scale(1);
   }
   
   .overlayContainer {
@@ -841,6 +1031,16 @@
   
   .form {
     padding: 0 30px;
+    border-radius: 0;
+  }
+  
+  /* Mobile slide animation */
+  .signUpContainer {
+    transform: translateX(100%) scale(0.95);
+  }
+  
+  .container.signUpMode::before {
+    display: none;
   }
 }
 
