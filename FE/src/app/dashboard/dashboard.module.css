@@ -625,3 +625,354 @@
 .actionButton:hover {
   color: #667eea;
 }
+
+/* Admin Dashboard Enhanced Styles */
+
+/* Admin Header */
+.adminHeader {
+  margin-bottom: 32px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.adminTitle {
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.adminSubtitle {
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Loading State */
+.loadingState {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.loadingSpinner {
+  width: 64px;
+  height: 64px;
+  border: 5px solid rgba(16, 185, 129, 0.1);
+  border-top: 5px solid #10b981;
+  border-right: 5px solid #06b6d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 24px;
+}
+
+.loadingText {
+  font-size: 16px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced KPI Grid */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kpiInfo {
+  flex: 1;
+}
+
+.kpiLabel {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.kpiValue {
+  font-size: 40px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.kpiIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  animation: float 3s ease-in-out infinite;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.kpiIconGreen {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.kpiIconBlue {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.kpiIconTeal {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+}
+
+.kpiIconLime {
+  background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+}
+
+.kpiDetails {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpiTrend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 12px;
+}
+
+.kpiTrendUp {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.kpiTrendDown {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* Section Titles */
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionIcon {
+  font-size: 24px;
+}
+
+/* Chart Controls */
+.chartControls {
+  display: flex;
+  gap: 12px;
+}
+
+.chartButton {
+  padding: 10px 20px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: white;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chartButton:hover {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #059669;
+}
+
+.chartButtonActive {
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Activity Section */
+.activitySection {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  box-shadow: 0 8px 32px rgba(5, 150, 105, 0.08);
+  margin-bottom: 32px;
+}
+
+.activityList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activityItem {
+  padding: 16px;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.08);
+  transition: all 0.2s ease;
+  border-radius: 10px;
+}
+
+.activityItem:hover {
+  background: rgba(16, 185, 129, 0.03);
+  transform: translateX(4px);
+}
+
+.activityItem:last-child {
+  border-bottom: none;
+}
+
+.activityHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.activityTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.activityTime {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.activityDesc {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* User Badge */
+.userBadge {
+  margin-top: auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.userBadgeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userBadgeTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+}
+
+.userBadgeName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.userBadgeEmail {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.energyIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.energyDot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.logoutBtn {
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoutBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+}

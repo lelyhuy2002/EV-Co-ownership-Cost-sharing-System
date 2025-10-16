@@ -104,18 +104,16 @@ export default function CreateGroupPage() {
 
       // Gọi API thực từ backend
       const requestData = {
-        vehicleId: Number.parseInt(String(vehicleId) || '0'),
+        vehicleId: parseInt(vehicleId),
         groupName: groupName,
         description: description,
-        estimatedValue: Number.parseFloat(String(estimatedValue) || '0'),
-        maxMembers: Number(maxMembers || 0),
-        minOwnershipPercentage: Number(selfOwnershipPct || 0)
+        estimatedValue: parseFloat(estimatedValue)
       };
-
+      
       console.log("📡 Calling API with data:", requestData, "userId:", userId);
-
-      // Call backend via apiService
+      
       const response = await apiService.createGroup(requestData, userId);
+      
       console.log("📥 API Response:", response);
 
       // Kiểm tra message để xác định thực sự thành công hay không

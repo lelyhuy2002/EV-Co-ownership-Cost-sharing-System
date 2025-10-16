@@ -1,84 +1,109 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import DashboardLayout from '@/components/Dashboard/DashboardLayout';
 import styles from './dashboard.module.css';
-import Header from '@/components/Header/Header';
+import { Users, Car, TrendingUp, FileText, BarChart3, TrendingUp as LineChart, PieChart, Activity } from 'lucide-react';
 
-// Mock data
-const mockVehicles = [
-  {
-    id: 1,
-    amount: '28,572.00',
-    currency: 'VNĐ',
-    status: 'Active',
-    number: '****  ****  ****  2879',
-    type: 'Tesla Model 3',
-    brand: 'Mastercard',
-    color: 'master'
-  },
-  {
-    id: 2,
-    amount: '12,148.00',
-    currency: 'VNĐ',
-    status: 'Disabled',
-    number: '****  ****  ****  2879',
-    type: 'VinFast VF8',
-    brand: 'VISA',
-    color: 'visa'
-  },
-  {
-    id: 3,
-    amount: '58,629.00',
-    currency: 'VNĐ',
-    status: 'Disabled',
-    number: '****  ****  ****  2879',
-    type: 'BYD Atto 3',
-    brand: 'AMEX',
-    color: 'amex'
-  },
-];
+// Mock data for EV Co-ownership Dashboard
 
-const mockTransactions = [
-  {
-    id: 'DEV12345',
-    customerName: 'Nguyễn Văn A',
-    email: 'nguyenvana@email.com',
-    date: '28 Dec 2025',
-    amount: '2,850,000',
-    status: 'Success',
+const mockData = {
+  kpis: {
+    totalUsers: 1247,
+    activeVehicles: 89,
   },
-  {
-    id: 'DEV54321',
-    customerName: 'Trần Thị B',
-    email: 'tranthib@email.com',
-    date: '14 Feb 2025',
-    amount: '1,235,000',
-    status: 'Pending',
-  },
-  {
-    id: 'DEV67890',
-    customerName: 'Lê Văn C',
-    email: 'levanc@email.com',
-    date: '20 Jan 2025',
-    amount: '3,150,000',
-    status: 'Success',
-  },
-];
-
-const chartData = Array.from({ length: 30 }, (_, i) => ({
-  day: i + 1,
-  income: Math.random() * 40000 + 20000,
-  expense: Math.random() * 30000 + 10000,
-}));
+  // Chart data for trips/bookings by month (Bar Chart)
+  monthlyTrips: [
+    { month: 'T1', trips: 145 },
+    { month: 'T2', trips: 178 },
+    { month: 'T3', trips: 234 },
+    { month: 'T4', trips: 198 },
+    { month: 'T5', trips: 267 },
+    { month: 'T6', trips: 312 },
+    { month: 'T7', trips: 289 },
+    { month: 'T8', trips: 345 },
+    { month: 'T9', trips: 298 },
+    { month: 'T10', trips: 378 },
+    { month: 'T11', trips: 412 },
+    { month: 'T12', trips: 456 },
+  ],
+  // User growth data (Line Chart)
+  userGrowth: [
+    { month: 'T1', users: 450 },
+    { month: 'T2', users: 523 },
+    { month: 'T3', users: 612 },
+    { month: 'T4', users: 734 },
+    { month: 'T5', users: 856 },
+    { month: 'T6', users: 978 },
+    { month: 'T7', users: 1045 },
+    { month: 'T8', users: 1123 },
+    { month: 'T9', users: 1189 },
+    { month: 'T10', users: 1234 },
+    { month: 'T11', users: 1247 },
+    { month: 'T12', users: 1267 },
+  ],
+  // Vehicle type distribution (Pie Chart)
+  vehicleTypes: [
+    { name: 'Tesla', value: 35, color: '#10b981' },
+    { name: 'VinFast', value: 28, color: '#06b6d4' },
+    { name: 'BYD', value: 22, color: '#84cc16' },
+    { name: 'Hyundai', value: 15, color: '#14b8a6' },
+  ],
+  // Revenue over time (Area Chart)
+  revenueData: [
+    { month: 'T1', revenue: 45000 },
+    { month: 'T2', revenue: 52000 },
+    { month: 'T3', revenue: 61000 },
+    { month: 'T4', revenue: 58000 },
+    { month: 'T5', revenue: 72000 },
+    { month: 'T6', revenue: 85000 },
+    { month: 'T7', revenue: 79000 },
+    { month: 'T8', revenue: 93000 },
+    { month: 'T9', revenue: 88000 },
+    { month: 'T10', revenue: 102000 },
+    { month: 'T11', revenue: 115000 },
+    { month: 'T12', revenue: 128000 },
+  ],
+  recentActivities: [
+    {
+      id: 1,
+      title: 'Xe mới được thêm vào hệ thống',
+      desc: 'Tesla Model Y - 51G-99999',
+      time: '5 phút trước',
+      type: 'vehicle',
+    },
+    {
+      id: 2,
+      title: 'Hoàn thành sạc pin',
+      desc: 'VinFast VF8 đã sạc đầy 100%',
+      time: '15 phút trước',
+      type: 'charging',
+    },
+    {
+      id: 3,
+      title: 'Tiết kiệm năng lượng mới',
+      desc: 'Đã tiết kiệm thêm 150 kWh hôm nay',
+      time: '1 giờ trước',
+      type: 'energy',
+    },
+    {
+      id: 4,
+      title: 'Người dùng mới đăng ký',
+      desc: 'Nguyễn Văn A đã tham gia hệ thống',
+      time: '2 giờ trước',
+      type: 'user',
+    },
+  ],
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [activeMenu, setActiveMenu] = useState('dashboard');
-  const [chartView, setChartView] = useState<'income' | 'expenses'>('income');
-  const [chartPeriod, setChartPeriod] = useState('monthly');
+  const [kpis, setKpis] = useState<any>(null);
+  const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'area'>('bar');
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -86,361 +111,256 @@ export default function DashboardPage() {
     }
   }, [user, router]);
 
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setKpis(mockData);
+    }, 500);
+  }, []);
+
+  const handleChartTypeChange = (newType: 'bar' | 'line' | 'pie' | 'area') => {
+    setChartType(newType);
+    setAnimationKey(prev => prev + 1); // Force re-animation
+  };
+
   if (!user) return null;
 
   return (
-    <div className={styles.container}>
-      {/* Sidebar */}
-      <aside className={styles.sidebar}>
-        <div className={styles.logo}>
-          <div className={styles.logoIcon}>⚡</div>
-          <div className={styles.logoText}>
-            <div className={styles.logoTitle}>EV Share</div>
-            <div className={styles.logoSubtitle}>Co-ownership App</div>
-          </div>
+    <DashboardLayout active="index">
+      {/* Header */}
+      <div className={styles.header}>
+        <h1 className={styles.title}>EV Co-ownership Dashboard</h1>
+        <p className={styles.subtitle}>Quản lý hệ thống chia sẻ xe điện</p>
+      </div>
+
+      {!kpis ? (
+        <div className={styles.loadingState}>
+          <div className={styles.loadingSpinner}></div>
+          <div className={styles.loadingText}>Đang tải dữ liệu...</div>
         </div>
-
-        <div className={styles.menuSection}>
-          <div className={styles.menuLabel}>MENU</div>
-          <nav className={styles.menuItems}>
-            <a
-              href="#"
-              className={`${styles.menuItem} ${activeMenu === 'dashboard' ? styles.menuItemActive : ''}`}
-              onClick={() => setActiveMenu('dashboard')}
-            >
-              <span className={styles.menuItemIcon}>📊</span>
-              <span>Dashboard</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('transactions')}
-            >
-              <span className={styles.menuItemIcon}>💳</span>
-              <span>Giao dịch</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('autopay')}
-            >
-              <span className={styles.menuItemIcon}>🔄</span>
-              <span>Thanh toán tự động</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('goals')}
-            >
-              <span className={styles.menuItemIcon}>🎯</span>
-              <span>Mục tiêu</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('settings')}
-            >
-              <span className={styles.menuItemIcon}>⚙️</span>
-              <span>Cài đặt</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('message')}
-            >
-              <span className={styles.menuItemIcon}>✉️</span>
-              <span>Tin nhắn</span>
-              <span className={styles.menuItemBadge}>2</span>
-            </a>
-            <a
-              href="#"
-              className={styles.menuItem}
-              onClick={() => setActiveMenu('investment')}
-            >
-              <span className={styles.menuItemIcon}>📈</span>
-              <span>Đầu tư</span>
-            </a>
-          </nav>
-        </div>
-
-        <div className={styles.menuSection}>
-          <div className={styles.menuLabel}>SUPPORT</div>
-          <nav className={styles.menuItems}>
-            <a href="#" className={styles.menuItem}>
-              <span className={styles.menuItemIcon}>❓</span>
-              <span>Hỗ trợ</span>
-            </a>
-            <a href="#" className={styles.menuItem} onClick={logout}>
-              <span className={styles.menuItemIcon}>🚪</span>
-              <span>Đăng xuất</span>
-            </a>
-          </nav>
-        </div>
-
-        <div className={styles.proSection}>
-          <div className={styles.proTitle}>
-            <span>👑</span>
-            <span>PRO</span>
-          </div>
-          <div className={styles.proText}>
-            Nhắc nhở thoát dự án, tìm kiếm nâng cao và nhiều hơn nữa
-          </div>
-          <button className={styles.proButton}>Nâng cấp Pro</button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className={styles.mainContent}>
-        {/* Shared Header component (visible) */}
-        <Header headerHidden={false} currentSection={2} />
-
-        {/* KPI Cards */}
-        <div className={styles.kpiRow}>
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <div>
-                <div className={styles.kpiTitle}>Tổng số dư</div>
-                <div className={styles.kpiValue}>82,620</div>
-                <div className={styles.kpiChange + ' ' + styles.kpiChangeUp}>
-                  <span>↑</span>
-                  <span>4% so với tháng trước</span>
-                </div>
-              </div>
-              <div>
-                <div className={styles.kpiIconWrapper}>💰</div>
-                <button className={styles.kpiMenu}>⋯</button>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiHeader}>
-              <div>
-                <div className={styles.kpiTitle}>Tổng chi tiêu</div>
-                <div className={styles.kpiValue}>54,870</div>
-                <div className={styles.kpiChange + ' ' + styles.kpiChangeDown}>
-                  <span>↓</span>
-                  <span>3% so với tháng trước</span>
-                </div>
-              </div>
-              <div>
-                <div className={styles.kpiIconWrapper}>💳</div>
-                <button className={styles.kpiMenu}>⋯</button>
-              </div>
-            </div>
-          </div>
-
-          <div className={styles.cardsSection} style={{ gridColumn: 'span 1' }}>
-            <div className={styles.cardsSectionHeader}>
-              <div className={styles.cardsSectionTitle}>Xe của tôi</div>
-              <button className={styles.addButton}>+ Thêm xe mới</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Vehicles Cards */}
-        <div className={styles.cardsSection}>
-          <div className={styles.cardsList}>
-            {mockVehicles.map((vehicle) => (
-              <div
-                key={vehicle.id}
-                className={`${styles.vehicleCard} ${styles['vehicleCard' + vehicle.brand]}`}
-              >
-                <div className={styles.vehicleCardHeader}>
-                  <div>
-                    <div className={styles.vehicleCardCurrency}>{vehicle.currency}</div>
-                    <div className={styles.vehicleCardAmount}>{vehicle.amount}</div>
+      ) : (
+        <>
+          {/* KPI Cards */}
+          <div className={styles.kpiGrid}>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiHeader}>
+                <div className={styles.kpiInfo}>
+                  <div className={styles.kpiLabel}>Tổng người dùng</div>
+                  <div className={styles.kpiValue}>{kpis.kpis.totalUsers.toLocaleString()}</div>
+                  <div className={styles.kpiDetails}>
+                    <Users size={14} />
+                    <span>+12% so với tháng trước</span>
                   </div>
-                  <div
-                    className={`${styles.vehicleCardStatus} ${
-                      vehicle.status === 'Disabled' ? styles.vehicleCardStatusDisabled : ''
-                    }`}
-                  >
-                    {vehicle.status}
+                  <div className={styles.kpiTrend + ' ' + styles.kpiTrendUp}>
+                    <TrendingUp size={14} />
+                    <span>12%</span>
                   </div>
                 </div>
-                <div className={styles.vehicleCardNumber}>{vehicle.number}</div>
-                <div className={styles.vehicleCardFooter}>
-                  <div className={styles.vehicleCardBrand}>{vehicle.brand}</div>
+                <div className={styles.kpiIcon + ' ' + styles.kpiIconGreen}>
+                  <Users size={28} color="white" />
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Chart Section */}
-        <div className={styles.chartSection}>
-          <div className={styles.chartHeader}>
-            <div className={styles.chartTitle}>Tổng quan giám sát</div>
-            <div className={styles.chartToggle}>
-              <button
-                className={`${styles.chartToggleButton} ${
-                  chartView === 'income' ? styles.chartToggleButtonActive : ''
-                }`}
-                onClick={() => setChartView('income')}
-              >
-                Thu nhập
-              </button>
-              <button
-                className={`${styles.chartToggleButton} ${
-                  chartView === 'expenses' ? styles.chartToggleButtonActive : ''
-                }`}
-                onClick={() => setChartView('expenses')}
-              >
-                Chi tiêu
-              </button>
-              <select className={styles.chartSelect} value={chartPeriod} onChange={(e) => setChartPeriod(e.target.value)}>
-                <option value="weekly">Hàng tuần</option>
-                <option value="monthly">Hàng tháng</option>
-                <option value="yearly">Hàng năm</option>
-              </select>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiHeader}>
+                <div className={styles.kpiInfo}>
+                  <div className={styles.kpiLabel}>Xe đang hoạt động</div>
+                  <div className={styles.kpiValue}>{kpis.kpis.activeVehicles}</div>
+                  <div className={styles.kpiDetails}>
+                    <Car size={14} />
+                    <span>Trên tổng số 120 xe</span>
+                  </div>
+                  <div className={styles.kpiTrend + ' ' + styles.kpiTrendUp}>
+                    <TrendingUp size={14} />
+                    <span>8%</span>
+                  </div>
+                </div>
+                <div className={styles.kpiIcon + ' ' + styles.kpiIconBlue}>
+                  <Car size={28} color="white" />
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{ height: '250px', position: 'relative' }}>
-            <SimpleChart data={chartData} activeView={chartView} />
-          </div>
-        </div>
 
-        {/* Transactions Table */}
-        <div className={styles.transactionsSection}>
-          <div className={styles.transactionsHeader}>
-            <div className={styles.transactionsTitle}>Giao dịch gần đây</div>
-            <div className={styles.transactionsActions}>
-              <input
-                type="text"
-                placeholder="Tìm kiếm..."
-                className={styles.searchInput}
+          {/* Interactive Charts Section */}
+          <div className={styles.chartSection}>
+            <div className={styles.chartHeader}>
+              <h2 className={styles.sectionTitle}>
+                <Activity size={24} style={{display: 'inline', marginRight: '8px'}} />
+                Biểu đồ thống kê
+              </h2>
+              <div className={styles.chartControls}>
+                <button
+                  className={`${styles.chartButton} ${chartType === 'bar' ? styles.chartButtonActive : ''}`}
+                  onClick={() => handleChartTypeChange('bar')}
+                >
+                  <BarChart3 size={16} style={{display: 'inline', marginRight: '6px'}} />
+                  Cột
+                </button>
+                <button
+                  className={`${styles.chartButton} ${chartType === 'line' ? styles.chartButtonActive : ''}`}
+                  onClick={() => handleChartTypeChange('line')}
+                >
+                  <LineChart size={16} style={{display: 'inline', marginRight: '6px'}} />
+                  Đường
+                </button>
+                <button
+                  className={`${styles.chartButton} ${chartType === 'pie' ? styles.chartButtonActive : ''}`}
+                  onClick={() => handleChartTypeChange('pie')}
+                >
+                  <PieChart size={16} style={{display: 'inline', marginRight: '6px'}} />
+                  Tròn
+                </button>
+                <button
+                  className={`${styles.chartButton} ${chartType === 'area' ? styles.chartButtonActive : ''}`}
+                  onClick={() => handleChartTypeChange('area')}
+                >
+                  <Activity size={16} style={{display: 'inline', marginRight: '6px'}} />
+                  Vùng
+                </button>
+              </div>
+            </div>
+            <div style={{ height: '350px', position: 'relative', overflow: 'hidden' }}>
+              <ChartRenderer
+                key={`${chartType}-${animationKey}`}
+                type={chartType}
+                barData={kpis.monthlyTrips}
+                lineData={kpis.userGrowth}
+                pieData={kpis.vehicleTypes}
+                areaData={kpis.revenueData}
               />
-              <button className={styles.filterButton}>
-                <span>⚙️</span>
-                <span>Lọc</span>
-              </button>
             </div>
           </div>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Deal ID</th>
-                <th>Tên khách hàng</th>
-                <th>Email khách hàng</th>
-                <th>Ngày</th>
-                <th>Số tiền</th>
-                <th>Trạng thái giao dịch</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockTransactions.map((transaction) => (
-                <tr key={transaction.id}>
-                  <td>{transaction.id}</td>
-                  <td>
-                    <div className={styles.userCell}>
-                      <div className={styles.userAvatar} style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                        {transaction.customerName[0]}
-                      </div>
-                      <span>{transaction.customerName}</span>
-                    </div>
-                  </td>
-                  <td>{transaction.email}</td>
-                  <td>{transaction.date}</td>
-                  <td>{transaction.amount} VNĐ</td>
-                  <td>
-                    <span
-                      className={`${styles.statusBadge} ${
-                        transaction.status === 'Success'
-                          ? styles.statusSuccess
-                          : styles.statusPending
-                      }`}
-                    >
-                      {transaction.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button className={styles.actionButton}>⋯</button>
-                  </td>
-                </tr>
+
+          {/* Recent Activity */}
+          <div className={styles.activitySection}>
+            <h2 className={styles.sectionTitle}>
+              <span className={styles.sectionIcon}><FileText size={24} /></span>
+              <span>Hoạt động gần đây</span>
+            </h2>
+            <ul className={styles.activityList}>
+              {kpis.recentActivities.map((activity: any) => (
+                <li key={activity.id} className={styles.activityItem}>
+                  <div className={styles.activityHeader}>
+                    <div className={styles.activityTitle}>{activity.title}</div>
+                    <div className={styles.activityTime}>{activity.time}</div>
+                  </div>
+                  <div className={styles.activityDesc}>{activity.desc}</div>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
+            </ul>
+          </div>
+        </>
+      )}
+    </DashboardLayout>
+  );
+}
+
+// Chart Renderer Component with animations
+function ChartRenderer({ type, barData, lineData, pieData, areaData }: {
+  type: 'bar' | 'line' | 'pie' | 'area';
+  barData: any[];
+  lineData: any[];
+  pieData: any[];
+  areaData: any[];
+}) {
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    setAnimate(false);
+    const timer = setTimeout(() => setAnimate(true), 50);
+    return () => clearTimeout(timer);
+  }, [type]);
+
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      opacity: animate ? 1 : 0,
+      transform: animate ? 'translateY(0)' : 'translateY(20px)',
+      transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+    }}>
+      {type === 'bar' && <BarChart data={barData} animate={animate} />}
+      {type === 'line' && <LineChartComponent data={lineData} animate={animate} />}
+      {type === 'pie' && <PieChartComponent data={pieData} animate={animate} />}
+      {type === 'area' && <AreaChart data={areaData} animate={animate} />}
     </div>
   );
 }
 
-// Simple Chart Component
-function SimpleChart({ data, activeView }: { data: any[]; activeView: 'income' | 'expenses' }) {
-  const maxValue = Math.max(
-    ...data.map((d) => (activeView === 'income' ? d.income : d.expense))
-  );
-  const width = 800;
-  const height = 200;
-  const padding = 40;
-
-  const points = data.slice(0, 12).map((d, i) => {
-    const value = activeView === 'income' ? d.income : d.expense;
-    return {
-      x: padding + (i / 11) * (width - padding * 2),
-      y: height - padding - ((value / maxValue) * (height - padding * 2)),
-      value: value,
-    };
-  });
-
-  const linePath = points
-    .map((p, i) => {
-      if (i === 0) return `M ${p.x},${p.y}`;
-      const prev = points[i - 1];
-      const cx = (prev.x + p.x) / 2;
-      return ` Q ${prev.x},${prev.y} ${cx},${(prev.y + p.y) / 2} T ${p.x},${p.y}`;
-    })
-    .join('');
-
-  const areaPath = `${linePath} L ${points[points.length - 1].x},${height - padding} L ${padding},${height - padding} Z`;
+// Bar Chart Component
+function BarChart({ data, animate }: { data: any[]; animate: boolean }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const maxValue = Math.max(...data.map(d => d.trips));
+  const width = 1000;
+  const height = 350;
+  const padding = 60;
+  const barWidth = (width - padding * 2) / data.length - 10;
 
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ width: '100%', height: '100%' }}
-    >
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: '100%' }}>
       <defs>
-        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#667eea" />
-          <stop offset="100%" stopColor="#764ba2" />
-        </linearGradient>
-        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#667eea" stopOpacity="0.2" />
-          <stop offset="100%" stopColor="#764ba2" stopOpacity="0.05" />
+        <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#10b981" />
+          <stop offset="100%" stopColor="#06b6d4" />
         </linearGradient>
       </defs>
 
-      {/* Area */}
-      <path d={areaPath} fill="url(#areaGradient)" />
-
-      {/* Line */}
-      <path
-        d={linePath}
-        fill="none"
-        stroke="url(#lineGradient)"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      {/* Points */}
-      {points.map((p, i) => (
-        <circle
+      {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => (
+        <line
           key={i}
-          cx={p.x}
-          cy={p.y}
-          r="5"
-          fill="url(#lineGradient)"
-          style={{ cursor: 'pointer' }}
-        >
-          <title>
-            {activeView === 'income' ? 'Thu nhập' : 'Chi tiêu'}: {p.value.toFixed(0)} VNĐ
-          </title>
-        </circle>
+          x1={padding}
+          y1={padding + (height - padding * 2) * ratio}
+          x2={width - padding}
+          y2={padding + (height - padding * 2) * ratio}
+          stroke="#e5e7eb"
+          strokeWidth="1"
+          strokeDasharray="4 4"
+          style={{
+            opacity: animate ? 0.6 : 0,
+            transition: 'opacity 0.4s ease-out'
+          }}
+        />
       ))}
+
+      {data.map((item, i) => {
+        const barHeight = ((item.trips / maxValue) * (height - padding * 2));
+        const x = padding + i * (barWidth + 10) + 5;
+        const y = height - padding - barHeight;
+        const isHovered = hoveredIndex === i;
+
+        return (
+          <g key={i}>
+            <rect
+              x={x}
+              y={animate ? y : height - padding}
+              width={barWidth}
+              height={animate ? barHeight : 0}
+              fill="url(#barGradient)"
+              rx="6"
+              style={{
+                transition: `all 0.9s ease ${i * 0.1}s`,
+                cursor: 'pointer',
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                transformOrigin: `${x + barWidth/2}px ${height - padding}px`
+              }}
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            />
+            <text
+              x={x + barWidth / 2}
+              y={height - padding + 20}
+              textAnchor="middle"
+              fontSize="12"
+              fill="#64748b"
+              fontWeight="600"
+            >
+              {item.month}
+            </text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
