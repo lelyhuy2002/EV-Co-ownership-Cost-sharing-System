@@ -137,30 +137,79 @@ class ApiService {
     try {
       const response = await fetch(url, config);
       
-      // Parse JSON response (cả success và error đều trả JSON)
-      const data = await response.json();
+      // Kiểm tra Content-Type
+      const contentType = response.headers.get('content-type');
       
-      if (!response.ok) {
-        // HTTP error (400, 401, etc.) - Backend trả về LoginResponse với success=false
-        return {
-          success: false,
-          message: data.message || `HTTP error! status: ${response.status}`,
-          userId: 0,
-          fullName: "",
-          email: "",
-          role: ""
-        };
-      }
+      // Xử lý response dựa trên Content-Type
+      if (contentType && contentType.includes('application/json')) {
+        // Backend trả về JSON (format chuẩn)
+        const data = await response.json();
+        
+        if (!response.ok) {
+          // HTTP error (400, 401, etc.)
+          return {
+            success: false,
+            message: data.message || `HTTP error! status: ${response.status}`,
+            userId: 0,
+            fullName: "",
+            email: "",
+            role: ""
+          };
+        }
 
-      // HTTP 200 OK - Backend trả về LoginResponse đầy đủ
-      return {
-        success: data.success || true,
-        message: data.message || "Đăng nhập thành công",
-        userId: data.userId || 0,
-        fullName: data.fullName || "",
-        email: data.email || credentials.email,
-        role: data.role || "user"
-      };
+        // HTTP 200 OK - Backend trả về LoginResponse đầy đủ
+        return {
+          success: data.success || true,
+          message: data.message || "Đăng nhập thành công",
+          userId: data.userId || 0,
+          fullName: data.fullName || "",
+          email: data.email || credentials.email,
+          role: data.role || "user"
+        };
+      } else {
+        // Backend trả về plain text (format hiện tại)
+        const text = await response.text();
+        
+        if (!response.ok) {
+          // HTTP error
+          return {
+            success: false,
+            message: text || `HTTP error! status: ${response.status}`,
+            userId: 0,
+            fullName: "",
+            email: "",
+            role: ""
+          };
+        }
+
+        // HTTP 200 OK - Backend trả về text message
+        // Kiểm tra message để xác định success/failure
+        const isSuccess = text.toLowerCase().includes('thành công') || 
+                         text.toLowerCase().includes('success');
+        
+        if (isSuccess) {
+          // Đăng nhập thành công - nhưng thiếu thông tin user
+          // Cần lấy thông tin user từ credentials hoặc API khác
+          return {
+            success: true,
+            message: text,
+            userId: 0, // Backend không trả về userId
+            fullName: "", // Backend không trả về fullName
+            email: credentials.email,
+            role: "user" // Mặc định là user
+          };
+        } else {
+          // Đăng nhập thất bại
+          return {
+            success: false,
+            message: text,
+            userId: 0,
+            fullName: "",
+            email: "",
+            role: ""
+          };
+        }
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
@@ -169,6 +218,15 @@ class ApiService {
       if (error instanceof TypeError && error.message === 'Failed to fetch') {
         throw new ApiError(
           'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng hoặc đảm bảo backend đang chạy.',
+          0
+        );
+      }
+      
+      // Xử lý lỗi JSON parsing
+      if (error instanceof SyntaxError) {
+        throw new ApiError(
+          `Lỗi parse JSON từ server. Backend có thể đang trả về HTML thay vì JSON.\n` +
+          `Vui lòng kiểm tra backend tại ${this.baseURL}${LOGIN_PATH}`,
           0
         );
       }
